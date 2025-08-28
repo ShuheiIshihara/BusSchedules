@@ -10,11 +10,18 @@ import SwiftUI
 @main
 struct BusNowApp: App {
     let persistenceController = PersistenceController.shared
+    @State private var showStationSelection = true
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            if showStationSelection {
+                StationSelectionView { stationPair in
+                    showStationSelection = false
+                }
+            } else {
+                ContentView()
+                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            }
         }
     }
 }
