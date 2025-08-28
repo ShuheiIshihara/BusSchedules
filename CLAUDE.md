@@ -16,7 +16,7 @@ This is an iOS bus schedule app project that helps families track multiple bus r
 
 - **Models**: `RouteSetting`, `BusSchedule`, `Holiday`
 - **Services**: 
-  - `ScraperService` (web scraping for timetables)
+  - `GTFSService` (GTFS-JP data processing)
   - `HolidayService` (holiday API integration)
   - `PersistenceService` (data storage)
 - **ViewModels**: `ScheduleViewModel`, `SettingsViewModel`
@@ -41,12 +41,13 @@ BusSchedules/
 
 ## Key Features
 
-- **Timetable Display**: Shows bus schedules with real-time updates
-- **Settings Management**: CRUD operations for route configurations
-- **Holiday Detection**: Uses holidays-jp.github.io API
-- **Web Scraping**: Extracts timetable data from bus company websites
-- **In-App Browser**: Displays proximity information
-- **Dynamic Updates**: Grays out passed departure times
+- **Dual Tab Interface**: "Outbound" (行き) and "Inbound" (帰り) schedule switching
+- **Real-time Clock**: Current time displayed with second precision (HH:MM:SS)
+- **Schedule List**: Displays departure time, route name, destination, platform number
+- **Automatic Day/Holiday Detection**: Selects appropriate timetable based on weekday/holiday
+- **Proximity Info Integration**: In-app browser for bus approach information
+- **Dynamic Visual Updates**: Grays out past departure times
+- **Multi-route Support**: Handles multiple GTFS-JP routes per direction
 
 ## Development Commands
 
@@ -58,14 +59,27 @@ BusSchedules/
 
 ## External Dependencies
 
-- **HTML Parsing**: SwiftSoup (to be added)
+- **GTFS Processing**: Built-in CSV parsing for GTFS-JP data
 - **Holiday API**: https://holidays-jp.github.io/api/v1/date.json
-- **Data Source**: Nagoya City Transportation Bureau website
+- **Data Source**: GTFS-JP specification v3 data
+- **Persistence**: UserDefaults or SwiftData for settings storage
+
+## Data Models
+
+- **RouteSetting**: Configuration entity with id, name, GTFS route identifiers for both directions, proximity URLs
+- **BusSchedule**: Individual bus entry with departure time, route name, destination, platform
+- **Holiday**: Date and name from holiday API
+
+## UI Specifications
+
+- **Main Screen**: Setting title display, tab control for direction switching, real-time clock, bus schedule list, proximity info button
+- **Settings Screen**: CRUD operations for route configurations with name, GTFS route identifiers, proximity URLs
+- **WebView Component**: In-app browser for displaying bus proximity information
 
 ## Development Phases
 
 1. **Project Setup**: Xcode project creation, dependency setup
-2. **Data Layer**: Scraping service, holiday service, persistence
+2. **Data Layer**: GTFS data service, holiday service, persistence
 3. **Persistence**: Settings storage with UserDefaults/SwiftData
 4. **UI Implementation**: Settings screens, schedule display, WebView
 5. **Integration**: Data-UI binding, real-time updates, testing
