@@ -64,4 +64,10 @@ class StationSelectionViewModel: ObservableObject {
         searchHistory = []
         userDefaults.removeObject(forKey: historyKey)
     }
+    
+    func swapStations(_ departureStation: inout String, _ arrivalStation: inout String) {
+        let temp = departureStation
+        departureStation = arrivalStation
+        arrivalStation = temp
+    }
 }

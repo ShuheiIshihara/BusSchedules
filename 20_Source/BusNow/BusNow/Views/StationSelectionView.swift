@@ -8,63 +8,153 @@ struct StationSelectionView: View {
     var onStationsPaired: (StationPair) -> Void
     
     var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("出発駅")) {
-                    TextField("乗車駅を入力してください", text: $departureStation)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
+        ScrollView {
+            VStack(spacing: 0) {
+                // Header
+                Text("駅の選択")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .padding(.top, 60)
+                    .padding(.bottom, 40)
                 
-                Section(header: Text("到着駅")) {
-                    TextField("降車駅を入力してください", text: $arrivalStation)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-                
-                Section {
-                    Button(action: {
-                        let stationPair = StationPair(departure: departureStation, arrival: arrivalStation)
-                        viewModel.saveStationPair(stationPair)
-                        onStationsPaired(stationPair)
-                    }) {
-                        Text("確定")
-                            .frame(maxWidth: .infinity)
-                            .foregroundColor(.white)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(departureStation.isEmpty || arrivalStation.isEmpty)
-                }
-                
-                if !viewModel.searchHistory.isEmpty {
-                    Section(header: HStack {
-                        Text("検索履歴")
-                        Spacer()
-                        Button("クリア") {
-                            viewModel.clearHistory()
+                // Station Input Section
+                VStack(spacing: 16) {
+                    // Departure Station
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("乗車駅")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        
+                        HStack {
+                            Image(systemName: "location.fill")
+                                .foregroundColor(.gray)
+                                .frame(width: 20)
+                            
+                            TextField("上野駅", text: $departureStation)
+                                .textFieldStyle(PlainTextFieldStyle())
                         }
-                        .font(.caption)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                    }
+                    
+                    // Station Swap Button
+                    Button(action: {
+                        viewModel.swapStations(&departureStation, &arrivalStation)
                     }) {
-                        ForEach(viewModel.searchHistory) { history in
-                            Button(action: {
-                                departureStation = history.departureStation
-                                arrivalStation = history.arrivalStation
-                            }) {
-                                HStack {
-                                    Text(history.displayName)
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    Text(formatDate(history.createdAt))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                        Image(systemName: "arrow.up.arrow.down")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.vertical, 8)
+                    
+                    // Arrival Station
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("降車駅")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        
+                        HStack {
+                            Image(systemName: "location.fill")
+                                .foregroundColor(.gray)
+                                .frame(width: 20)
+                            
+                            TextField("池袋駅", text: $arrivalStation)
+                                .textFieldStyle(PlainTextFieldStyle())
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                // Search Button
+                Button(action: {
+                    let stationPair = StationPair(departure: departureStation, arrival: arrivalStation)
+                    viewModel.saveStationPair(stationPair)
+                    onStationsPaired(stationPair)
+                }) {
+                    Text("検索")
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.blue)
+                        .cornerRadius(8)
+                }
+                .disabled(departureStation.isEmpty || arrivalStation.isEmpty)
+                .padding(.horizontal, 20)
+                .padding(.top, 32)
+                
+                // Search History Section
+                if !viewModel.searchHistory.isEmpty {
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Text("検索履歴")
+                                .font(.body)
+                                .fontWeight(.medium)
+                            
+                            Spacer()
+                            
+                            Button("クリア") {
+                                viewModel.clearHistory()
+                            }
+                            .font(.body)
+                            .foregroundColor(.blue)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 40)
+                        
+                        VStack(spacing: 0) {
+                            ForEach(Array(viewModel.searchHistory.enumerated()), id: \.element.id) { index, history in
+                                Button(action: {
+                                    departureStation = history.departureStation
+                                    arrivalStation = history.arrivalStation
+                                }) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(history.displayName)
+                                                .font(.body)
+                                                .foregroundColor(.primary)
+                                            
+                                            Text(formatDate(history.createdAt))
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 12)
+                                }
+                                .background(Color(.secondarySystemGroupedBackground))
+                                
+                                if index < viewModel.searchHistory.count - 1 {
+                                    Divider()
+                                        .padding(.leading, 20)
                                 }
                             }
                         }
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(8)
+                        .padding(.horizontal, 20)
                     }
                 }
+                
+                Spacer(minLength: 40)
             }
-            .navigationTitle("駅の選択")
-            .onAppear {
-                loadSavedStations()
-            }
+        }
+        .background(Color(.systemGroupedBackground))
+        .onAppear {
+            loadSavedStations()
         }
     }
     
