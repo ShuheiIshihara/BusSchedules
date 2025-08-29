@@ -16,8 +16,8 @@ This is an iOS bus schedule app project that helps families track multiple bus r
 
 - **Models**: `RouteSetting`, `BusSchedule`, `Holiday`
 - **Services**: 
-  - `GTFSService` (GTFS-JP data processing)
-  - `HolidayService` (holiday API integration)
+  - `SupabaseService` (Supabase database integration)
+  - `HolidayService` (holiday data management from database)
   - `PersistenceService` (data storage)
 - **ViewModels**: `ScheduleViewModel`, `SettingsViewModel`
 - **Views**: Schedule views, Settings views, WebView component
@@ -47,7 +47,7 @@ BusSchedules/
 - **Automatic Day/Holiday Detection**: Selects appropriate timetable based on weekday/holiday
 - **Proximity Info Integration**: In-app browser for bus approach information
 - **Dynamic Visual Updates**: Grays out past departure times
-- **Multi-route Support**: Handles multiple GTFS-JP routes per direction
+- **Multi-route Support**: Handles multiple bus routes per direction from Supabase database
 
 ## Development Commands
 
@@ -59,9 +59,11 @@ BusSchedules/
 
 ## External Dependencies
 
-- **GTFS Processing**: Built-in CSV parsing for GTFS-JP data
-- **Holiday API**: https://holidays-jp.github.io/api/v1/date.json
-- **Data Source**: GTFS-JP specification v3 data
+- **Supabase Integration**: Supabase Swift SDK for database access
+  - **Authentication**: Anonymous access (no user registration required)
+  - **Security**: Row Level Security (RLS) for public data access control
+  - **API**: REST API for synchronous data retrieval
+- **Data Source**: Supabase PostgreSQL database
 - **Persistence**: UserDefaults or SwiftData for settings storage
 
 ## Data Models
@@ -78,11 +80,11 @@ BusSchedules/
 
 ## Development Phases
 
-1. **Project Setup**: Xcode project creation, dependency setup
-2. **Data Layer**: GTFS data service, holiday service, persistence
+1. **Project Setup**: Xcode project creation, Supabase SDK integration
+2. **Data Layer**: Supabase service, holiday service, persistence
 3. **Persistence**: Settings storage with UserDefaults/SwiftData
 4. **UI Implementation**: Settings screens, schedule display, WebView
-5. **Integration**: Data-UI binding, real-time updates, testing
+5. **Integration**: Data-UI binding, database connectivity, testing
 
 ## Testing Strategy
 
