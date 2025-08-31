@@ -163,6 +163,18 @@ struct StationSelectionView: View {
             departureStation = savedPair.departureStation
             arrivalStation = savedPair.arrivalStation
         }
+        
+        // BusNowApp.swift で
+        SupabaseConfig.printDebugInfo()
+
+        Task {
+            let isConnected = await SupabaseService.shared.testConnection()
+            print("Supabase接続状態: \(isConnected)")
+            
+            // RPC関数のテスト
+            let rpcTest = await SupabaseService.shared.testRPCCall()
+            print("RPCテスト結果: \(rpcTest)")
+        }
     }
     
     private func formatDate(_ date: Date) -> String {
