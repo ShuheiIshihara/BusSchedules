@@ -1,7 +1,7 @@
 import Foundation
 
 struct StationPair: Codable, Equatable, Identifiable {
-    let id = UUID()
+    var id = UUID()
     let departureStation: String
     let arrivalStation: String
     let createdAt: Date
