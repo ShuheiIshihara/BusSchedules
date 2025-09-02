@@ -50,8 +50,8 @@ struct BusScheduleView: View {
             }
             .padding(.horizontal, 20)
             
-            Text(viewModel.stationPair.displayName)
-                .font(.title2)
+            Text(viewModel.stationPair.displayName.normalizedForDisplay())
+                .stationNameLargeFont()
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             
@@ -254,8 +254,8 @@ struct BusScheduleRowView: View {
                     // Route and Destination Info
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text(schedule.routeName)
-                                .font(.body)
+                            Text(schedule.routeName.normalizedForDisplay())
+                                .busRouteFont()
                                 .fontWeight(.semibold)
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 8)
@@ -263,8 +263,8 @@ struct BusScheduleRowView: View {
                                 .background(Color.orange)
                                 .cornerRadius(4)
                             
-                            Text(schedule.destination)
-                                .font(.body)
+                            Text(schedule.destination.normalizedForDisplay())
+                                .busDestinationFont()
                                 .foregroundColor(isPastTime ? .gray : .primary)
                                 .lineLimit(1)
                         }

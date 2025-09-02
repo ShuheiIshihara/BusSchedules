@@ -32,6 +32,7 @@ struct StationSelectionView: View {
                             
                             TextField("上野駅", text: $departureStation)
                                 .textFieldStyle(PlainTextFieldStyle())
+                                .stationNameFont()
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
@@ -62,6 +63,7 @@ struct StationSelectionView: View {
                             
                             TextField("池袋駅", text: $arrivalStation)
                                 .textFieldStyle(PlainTextFieldStyle())
+                                .stationNameFont()
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
@@ -117,8 +119,8 @@ struct StationSelectionView: View {
                                 }) {
                                     HStack {
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text(history.displayName)
-                                                .font(.body)
+                                            Text(history.displayName.normalizedForDisplay())
+                                                .stationNameFont()
                                                 .foregroundColor(.primary)
                                             
                                             Text(formatDate(history.createdAt))
