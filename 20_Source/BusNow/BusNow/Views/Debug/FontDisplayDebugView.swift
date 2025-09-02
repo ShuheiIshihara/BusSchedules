@@ -77,7 +77,6 @@ struct FontDisplayDebugView: View {
                             .foregroundColor(.secondary)
                         
                         Text(character)
-                            .stationNameLargeFont()
                             .fontWeight(.medium)
                         
                         Spacer()
@@ -146,7 +145,6 @@ struct FontDisplayDebugView: View {
                         .font(.body)
                     
                     Text("表示用正規化: \(testText.normalizedForDisplay())")
-                        .stationNameLargeFont()
                         .fontWeight(.medium)
                 }
                 .padding(.horizontal, 12)
