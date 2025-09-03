@@ -173,24 +173,47 @@ struct BusScheduleView: View {
     }
     
     private var scheduleList: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(Array(viewModel.busSchedules.enumerated()), id: \.element.departureTime) { index, schedule in
-                    BusScheduleRowView(
-                        schedule: schedule,
-                        isPastTime: viewModel.isPastTime(schedule.departureTime)
-                    )
-                    
-                    if index < viewModel.busSchedules.count - 1 {
-                        Divider()
-                            .padding(.leading, 20)
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(Array(viewModel.busSchedules.enumerated()), id: \.element.departureTime) { index, schedule in
+                        BusScheduleRowView(
+                            schedule: schedule,
+                            isPastTime: viewModel.isPastTime(schedule.departureTime),
+                            isNextBus: viewModel.nextBusIndex == index,
+                            minutesUntil: viewModel.nextBusIndex == index ? viewModel.minutesUntilNextBus() : nil
+                        )
+                        .id("schedule_\(index)") // スクロール用のID
+                        
+                        if index < viewModel.busSchedules.count - 1 {
+                            Divider()
+                                .padding(.leading, 20)
+                        }
+                    }
+                }
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(8)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 100) // Direction tabsのスペース確保
+            }
+            .onChange(of: viewModel.nextBusIndex) { _, newIndex in
+                // 次のバスが変わった時に自動スクロール
+                if let index = newIndex {
+                    withAnimation(.easeInOut(duration: 0.8)) {
+                        proxy.scrollTo("schedule_\(index)", anchor: .center)
                     }
                 }
             }
-            .background(Color(.secondarySystemGroupedBackground))
-            .cornerRadius(8)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 100) // Direction tabsのスペース確保
+            .onAppear {
+                // 初回表示時に次のバスにスクロール
+                if let index = viewModel.nextBusIndex {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(.easeInOut(duration: 0.8)) {
+                            proxy.scrollTo("schedule_\(index)", anchor: .center)
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -225,6 +248,8 @@ struct BusScheduleView: View {
 struct BusScheduleRowView: View {
     let schedule: BusScheduleData
     let isPastTime: Bool
+    let isNextBus: Bool
+    let minutesUntil: Int?
     @State private var isExpanded: Bool = false
     
     var body: some View {
@@ -246,6 +271,18 @@ struct BusScheduleRowView: View {
                             Text("発車済")
                                 .font(.caption2)
                                 .foregroundColor(.gray)
+                        } else if isNextBus {
+                            if let minutes = minutesUntil {
+                                Text(minutes <= 1 ? "まもなく" : "あと\(minutes)分")
+                                    .font(.caption2)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.blue)
+                            } else {
+                                Text("次のバス")
+                                    .font(.caption2)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.blue)
+                            }
                         }
                     }
                     .frame(width: 60, alignment: .leading)
@@ -316,6 +353,15 @@ struct BusScheduleRowView: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isNextBus ? Color.blue.opacity(0.1) : Color.clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(isNextBus ? Color.blue : Color.clear, lineWidth: isNextBus ? 2 : 0)
+        )
+        .padding(.horizontal, isNextBus ? 16 : 0)
     }
 }
 

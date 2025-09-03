@@ -342,10 +342,22 @@ struct BusScheduleData {
     
     // RPC レスポンスから BusScheduleData への変換（表示用正規化適用）
     init(from rpcResponse: BusScheduleRPCResponse) {
-        self.departureTime = rpcResponse.departureTime
+        // 時刻から秒を削除（HH:MM:SS → HH:MM）
+        self.departureTime = Self.formatTimeWithoutSeconds(rpcResponse.departureTime)
         self.routeName = rpcResponse.routeName.normalizedForDisplay()
         self.destination = rpcResponse.destination.normalizedForDisplay()
         self.platform = rpcResponse.platform
+    }
+    
+    // 時刻文字列から秒を削除するヘルパー関数
+    private static func formatTimeWithoutSeconds(_ timeString: String) -> String {
+        // HH:MM:SS形式の場合、HH:MMに変換
+        let components = timeString.split(separator: ":")
+        if components.count >= 2 {
+            return "\(components[0]):\(components[1])"
+        }
+        // すでにHH:MM形式の場合はそのまま返す
+        return timeString
     }
     
     // 既存のイニシャライザーも保持（テスト用）

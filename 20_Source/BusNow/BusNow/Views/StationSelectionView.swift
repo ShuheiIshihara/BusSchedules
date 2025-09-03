@@ -30,7 +30,7 @@ struct StationSelectionView: View {
                                 .foregroundColor(.gray)
                                 .frame(width: 20)
                             
-                            TextField("上野駅", text: $departureStation)
+                            TextField("野並", text: $departureStation)
                                 .textFieldStyle(PlainTextFieldStyle())
                         }
                         .padding(.horizontal, 16)
@@ -60,7 +60,7 @@ struct StationSelectionView: View {
                                 .foregroundColor(.gray)
                                 .frame(width: 20)
                             
-                            TextField("池袋駅", text: $arrivalStation)
+                            TextField("緑車庫", text: $arrivalStation)
                                 .textFieldStyle(PlainTextFieldStyle())
                         }
                         .padding(.horizontal, 16)
@@ -162,18 +162,6 @@ struct StationSelectionView: View {
             departureStation = savedPair.departureStation
             arrivalStation = savedPair.arrivalStation
         }
-        
-//        // BusNowApp.swift で
-//        SupabaseConfig.printDebugInfo()
-//
-//        Task {
-//            let isConnected = await SupabaseService.shared.testConnection()
-//            print("Supabase接続状態: \(isConnected)")
-//            
-//            // RPC関数のテスト
-//            let rpcTest = await SupabaseService.shared.testRPCCall()
-//            print("RPCテスト結果: \(rpcTest)")
-//        }
     }
     
     private func formatDate(_ date: Date) -> String {

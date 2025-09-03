@@ -10,6 +10,7 @@ class BusScheduleViewModel: ObservableObject {
     @Published var busSchedules: [BusScheduleData] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var nextBusIndex: Int? = nil
     
     private var timer: Timer?
     private let supabaseService = SupabaseService.shared
@@ -47,6 +48,7 @@ class BusScheduleViewModel: ObservableObject {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             Task { @MainActor in
                 self.currentTime = Date()
+                self.updateNextBusIndex() // 時間経過に伴う次のバス更新
             }
         }
     }
@@ -68,6 +70,7 @@ class BusScheduleViewModel: ObservableObject {
                 date: currentTime
             )
             busSchedules = schedules
+            updateNextBusIndex() // 次のバスのインデックスを更新
         } catch {
             errorMessage = "時刻表の取得に失敗しました: \(error.localizedDescription)"
         }
@@ -129,5 +132,54 @@ class BusScheduleViewModel: ObservableObject {
         }
         
         return false
+    }
+    
+    // 現在時刻以降の最初のバスのインデックスを検索
+    private func findNextBusIndex() -> Int? {
+        for (index, schedule) in busSchedules.enumerated() {
+            if !isPastTime(schedule.departureTime) {
+                return index
+            }
+        }
+        return nil // 全てのバスが発車済み
+    }
+    
+    // 次のバスインデックスを更新
+    private func updateNextBusIndex() {
+        let newIndex = findNextBusIndex()
+        if nextBusIndex != newIndex {
+            nextBusIndex = newIndex
+        }
+    }
+    
+    // 次のバスまでの時間を計算（分単位）
+    func minutesUntilNextBus() -> Int? {
+        guard let index = nextBusIndex,
+              index < busSchedules.count else { return nil }
+        
+        let schedule = busSchedules[index]
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        
+        guard let scheduledTime = formatter.date(from: schedule.departureTime) else {
+            return nil
+        }
+        
+        let calendar = Calendar.current
+        let currentComponents = calendar.dateComponents([.hour, .minute], from: currentTime)
+        let scheduledComponents = calendar.dateComponents([.hour, .minute], from: scheduledTime)
+        
+        if let currentHour = currentComponents.hour,
+           let currentMinute = currentComponents.minute,
+           let scheduledHour = scheduledComponents.hour,
+           let scheduledMinute = scheduledComponents.minute {
+            
+            let currentTotalMinutes = currentHour * 60 + currentMinute
+            let scheduledTotalMinutes = scheduledHour * 60 + scheduledMinute
+            
+            return max(0, scheduledTotalMinutes - currentTotalMinutes)
+        }
+        
+        return nil
     }
 }
