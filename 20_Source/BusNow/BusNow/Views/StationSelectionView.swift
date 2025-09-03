@@ -109,8 +109,8 @@ struct StationSelectionView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 40)
                         
-                        VStack(spacing: 0) {
-                            ForEach(Array(viewModel.searchHistory.enumerated()), id: \.element.id) { index, history in
+                        List {
+                            ForEach(viewModel.searchHistory, id: \.id) { history in
                                 Button(action: {
                                     departureStation = history.departureStation
                                     arrivalStation = history.arrivalStation
@@ -134,14 +134,22 @@ struct StationSelectionView: View {
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 12)
                                 }
-                                .background(Color(.secondarySystemGroupedBackground))
-                                
-                                if index < viewModel.searchHistory.count - 1 {
-                                    Divider()
-                                        .padding(.leading, 20)
+                                .listRowBackground(Color(.secondarySystemGroupedBackground))
+                                .listRowSeparator(.visible, edges: .bottom)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 0))
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button("削除") {
+                                        if let index = viewModel.searchHistory.firstIndex(where: { $0.id == history.id }) {
+                                            viewModel.removeHistoryItem(at: index)
+                                        }
+                                    }
+                                    .tint(.red)
                                 }
                             }
                         }
+                        .listStyle(.plain)
+                        .scrollDisabled(true)
+                        .frame(height: CGFloat(viewModel.searchHistory.count * 60))
                         .background(Color(.secondarySystemGroupedBackground))
                         .cornerRadius(8)
                         .padding(.horizontal, 20)
