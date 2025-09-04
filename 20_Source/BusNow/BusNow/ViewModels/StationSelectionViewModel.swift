@@ -13,10 +13,15 @@ class StationSelectionViewModel: ObservableObject {
     }
     
     func saveStationPair(_ stationPair: StationPair) {
-        if let encoded = try? JSONEncoder().encode(stationPair) {
+        let normalizedPair = StationPair(
+            departure: stationPair.departureStation.normalizedForSearch(),
+            arrival: stationPair.arrivalStation.normalizedForSearch()
+        )
+        
+        if let encoded = try? JSONEncoder().encode(normalizedPair) {
             userDefaults.set(encoded, forKey: stationPairKey)
         }
-        addToHistory(stationPair)
+        addToHistory(normalizedPair)
     }
     
     func loadSavedStationPair() -> StationPair? {
@@ -32,11 +37,16 @@ class StationSelectionViewModel: ObservableObject {
     }
     
     private func addToHistory(_ stationPair: StationPair) {
+        let normalizedPair = StationPair(
+            departure: stationPair.departureStation.normalizedForSearch(),
+            arrival: stationPair.arrivalStation.normalizedForSearch()
+        )
+        
         var history = searchHistory
         
-        history.removeAll { $0.departureStation == stationPair.departureStation && $0.arrivalStation == stationPair.arrivalStation }
+        history.removeAll { $0.departureStation == normalizedPair.departureStation && $0.arrivalStation == normalizedPair.arrivalStation }
         
-        history.insert(stationPair, at: 0)
+        history.insert(normalizedPair, at: 0)
         
         if history.count > maxHistoryCount {
             history = Array(history.prefix(maxHistoryCount))
@@ -63,6 +73,12 @@ class StationSelectionViewModel: ObservableObject {
     func clearHistory() {
         searchHistory = []
         userDefaults.removeObject(forKey: historyKey)
+    }
+    
+    func removeHistoryItem(at index: Int) {
+        guard index >= 0 && index < searchHistory.count else { return }
+        searchHistory.remove(at: index)
+        saveHistory()
     }
     
     func swapStations(_ departureStation: inout String, _ arrivalStation: inout String) {

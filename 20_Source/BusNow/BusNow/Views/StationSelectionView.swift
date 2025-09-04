@@ -30,7 +30,7 @@ struct StationSelectionView: View {
                                 .foregroundColor(.gray)
                                 .frame(width: 20)
                             
-                            TextField("上野駅", text: $departureStation)
+                            TextField("野並", text: $departureStation)
                                 .textFieldStyle(PlainTextFieldStyle())
                         }
                         .padding(.horizontal, 16)
@@ -60,7 +60,7 @@ struct StationSelectionView: View {
                                 .foregroundColor(.gray)
                                 .frame(width: 20)
                             
-                            TextField("池袋駅", text: $arrivalStation)
+                            TextField("緑車庫", text: $arrivalStation)
                                 .textFieldStyle(PlainTextFieldStyle())
                         }
                         .padding(.horizontal, 16)
@@ -109,16 +109,15 @@ struct StationSelectionView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 40)
                         
-                        VStack(spacing: 0) {
-                            ForEach(Array(viewModel.searchHistory.enumerated()), id: \.element.id) { index, history in
+                        List {
+                            ForEach(viewModel.searchHistory, id: \.id) { history in
                                 Button(action: {
                                     departureStation = history.departureStation
                                     arrivalStation = history.arrivalStation
                                 }) {
                                     HStack {
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text(history.displayName)
-                                                .font(.body)
+                                            Text(history.displayName.normalizedForDisplay())
                                                 .foregroundColor(.primary)
                                             
                                             Text(formatDate(history.createdAt))
@@ -135,14 +134,22 @@ struct StationSelectionView: View {
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 12)
                                 }
-                                .background(Color(.secondarySystemGroupedBackground))
-                                
-                                if index < viewModel.searchHistory.count - 1 {
-                                    Divider()
-                                        .padding(.leading, 20)
+                                .listRowBackground(Color(.secondarySystemGroupedBackground))
+                                .listRowSeparator(.visible, edges: .bottom)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 0))
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button("削除") {
+                                        if let index = viewModel.searchHistory.firstIndex(where: { $0.id == history.id }) {
+                                            viewModel.removeHistoryItem(at: index)
+                                        }
+                                    }
+                                    .tint(.red)
                                 }
                             }
                         }
+                        .listStyle(.plain)
+                        .scrollDisabled(true)
+                        .frame(height: CGFloat(viewModel.searchHistory.count * 60))
                         .background(Color(.secondarySystemGroupedBackground))
                         .cornerRadius(8)
                         .padding(.horizontal, 20)

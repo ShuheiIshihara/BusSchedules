@@ -53,8 +53,8 @@ BusSchedules/
 
 **Note**: This project is currently in the design phase. When the Xcode project is created:
 
-- Build: `xcodebuild -scheme BusSchedules -destination 'platform=iOS Simulator,name=iPhone 15'`
-- Test: `xcodebuild test -scheme BusSchedules -destination 'platform=iOS Simulator,name=iPhone 15'`
+- Build: `xcodebuild -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16'`
+- Test: `xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16'`
 - Run single test: Use Xcode's test navigator or command line with specific test methods
 
 ## External Dependencies

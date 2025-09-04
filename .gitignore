@@ -87,3 +87,9 @@ Temporary Items
 
 # Claude Code settings
 .claude/settings.local.json
+
+# Configuration files with sensitive data
+Config-Local.xcconfig
+*.local.xcconfig
+*.env
+.env.local

@@ -11,12 +11,18 @@ import SwiftUI
 struct BusNowApp: App {
     let persistenceController = PersistenceController.shared
     @State private var showStationSelection = true
+    @State private var selectedStationPair: StationPair?
 
     var body: some Scene {
         WindowGroup {
             if showStationSelection {
                 StationSelectionView { stationPair in
+                    selectedStationPair = stationPair
                     showStationSelection = false
+                }
+            } else if let stationPair = selectedStationPair {
+                BusScheduleView(stationPair: stationPair) {
+                    showStationSelection = true
                 }
             } else {
                 ContentView()
