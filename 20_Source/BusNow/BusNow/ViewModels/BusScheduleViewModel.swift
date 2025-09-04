@@ -11,7 +11,10 @@ class BusScheduleViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var nextBusIndex: Int? = nil
+    @Published var targetDate: Date = Date()
     
+    private let originalStationPair: StationPair
+    private var currentStationPair: StationPair
     private var timer: Timer?
     private let supabaseService = SupabaseService.shared
     
@@ -35,6 +38,8 @@ class BusScheduleViewModel: ObservableObject {
     
     init(stationPair: StationPair) {
         self.stationPair = stationPair
+        self.originalStationPair = stationPair
+        self.currentStationPair = stationPair
         startTimeTimer()
         loadBusSchedules()
     }
@@ -65,9 +70,9 @@ class BusScheduleViewModel: ObservableObject {
         
         do {
             let schedules = try await supabaseService.getBusSchedules(
-                routeId: "\(stationPair.departureStation)_\(stationPair.arrivalStation)",
+                routeId: "\(currentStationPair.departureStation)_\(currentStationPair.arrivalStation)",
                 direction: selectedDirection.rawValue,
-                date: currentTime
+                date: targetDate
             )
             busSchedules = schedules
             updateNextBusIndex() // 次のバスのインデックスを更新
@@ -84,11 +89,53 @@ class BusScheduleViewModel: ObservableObject {
     
     func selectServiceType(_ serviceType: ServiceType) {
         selectedServiceType = serviceType
+        
+        // 現在の日付の種類を判定
+        let today = Date()
+        let isTodayWeekday = isWeekday(today)
+        
+        // 選択されたサービスタイプに基づいて対象日付を計算
+        switch serviceType {
+        case .weekday:
+            if isTodayWeekday {
+                // 平日に平日ボタン -> 今日のまま
+                targetDate = today
+            } else {
+                // 土日祝に平日ボタン -> 次の月曜日
+                targetDate = getNextMonday(from: today)
+            }
+        case .holiday:
+            if isTodayWeekday {
+                // 平日に土日祝ボタン -> 次の土曜日
+                targetDate = getNextSaturday(from: today)
+            } else {
+                // 土日祝に土日祝ボタン -> 今日のまま
+                targetDate = today
+            }
+        }
+        
         loadBusSchedules()
     }
     
     func selectDirection(_ direction: Direction) {
         selectedDirection = direction
+        
+        // 方向に基づいて駅ペアを設定
+        switch direction {
+        case .outbound:
+            // 行き: 元の駅ペアを使用
+            currentStationPair = originalStationPair
+            stationPair = originalStationPair
+        case .inbound:
+            // 帰り: 駅を入れ替え
+            let reversedStationPair = StationPair(
+                departure: originalStationPair.arrivalStation,
+                arrival: originalStationPair.departureStation
+            )
+            currentStationPair = reversedStationPair
+            stationPair = reversedStationPair
+        }
+        
         loadBusSchedules()
     }
     
@@ -105,7 +152,7 @@ class BusScheduleViewModel: ObservableObject {
         weekdayFormatter.dateFormat = "(E)"
         weekdayFormatter.locale = Locale(identifier: "ja_JP")
         
-        return formatter.string(from: currentTime) + weekdayFormatter.string(from: currentTime)
+        return formatter.string(from: targetDate) + weekdayFormatter.string(from: targetDate)
     }
     
     func isPastTime(_ departureTime: String) -> Bool {
@@ -181,5 +228,46 @@ class BusScheduleViewModel: ObservableObject {
         }
         
         return nil
+    }
+    
+    // 日付が平日かどうかを判定
+    private func isWeekday(_ date: Date) -> Bool {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        // weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
+        return weekday >= 2 && weekday <= 6 // Monday to Friday
+    }
+    
+    // 次の土曜日の日付を取得
+    private func getNextSaturday(from date: Date) -> Date {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        
+        // 現在が土曜日（weekday = 7）の場合は今日を返す
+        if weekday == 7 {
+            return date
+        }
+        
+        // 次の土曜日までの日数を計算
+        let daysUntilSaturday = (7 - weekday + 7) % 7
+        let adjustedDays = daysUntilSaturday == 0 ? 7 : daysUntilSaturday
+        
+        return calendar.date(byAdding: .day, value: adjustedDays, to: date) ?? date
+    }
+    
+    // 次の月曜日の日付を取得
+    private func getNextMonday(from date: Date) -> Date {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        
+        // 現在が月曜日（weekday = 2）の場合は今日を返す
+        if weekday == 2 {
+            return date
+        }
+        
+        // 次の月曜日までの日数を計算
+        let daysUntilMonday = weekday == 1 ? 1 : (9 - weekday) // Sunday: 1 day, other: 9-weekday
+        
+        return calendar.date(byAdding: .day, value: daysUntilMonday, to: date) ?? date
     }
 }
