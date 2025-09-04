@@ -58,8 +58,8 @@ struct BusScheduleView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
-        .padding(.top, 60)
-        .padding(.bottom, 20)
+        .padding(.top, 40)
+        .padding(.bottom, 10)
     }
     
     private var serviceTypeTabsSection: some View {
@@ -82,7 +82,7 @@ struct BusScheduleView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 16)
+        .padding(.bottom, 8)
     }
     
     private var currentTimeSection: some View {
@@ -99,7 +99,7 @@ struct BusScheduleView: View {
                 .foregroundColor(.blue)
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 16)
+        .padding(.bottom, 8)
     }
     
     private var scheduleListSection: some View {
@@ -194,7 +194,7 @@ struct BusScheduleView: View {
                 .background(Color(.secondarySystemGroupedBackground))
                 .cornerRadius(8)
                 .padding(.horizontal, 20)
-                .padding(.bottom, 100) // Direction tabsのスペース確保
+                .padding(.bottom, 20) // Direction tabsのスペース確保
             }
             .onChange(of: viewModel.nextBusIndex) { _, newIndex in
                 // 次のバスが変わった時に自動スクロール
@@ -219,8 +219,6 @@ struct BusScheduleView: View {
     
     private var directionTabsSection: some View {
         VStack {
-            Spacer()
-            
             HStack {
                 ForEach(BusScheduleViewModel.Direction.allCases, id: \.rawValue) { direction in
                     Button(action: {
@@ -240,7 +238,7 @@ struct BusScheduleView: View {
             }
             .cornerRadius(8)
             .padding(.horizontal, 20)
-            .padding(.bottom, 34) // Safe area bottom padding
+            .padding(.bottom, 20) // Safe area bottom padding
         }
     }
 }
