@@ -271,7 +271,7 @@ struct BusScheduleRowView: View {
                                 .foregroundColor(.gray)
                         } else if isNextBus {
                             if let minutes = minutesUntil {
-                                Text(minutes <= 1 ? "まもなく" : "あと\(minutes)分")
+                                Text(minutes == 1 ? "まもなく" : "あと\(minutes)分")
                                     .font(.caption2)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.blue)
