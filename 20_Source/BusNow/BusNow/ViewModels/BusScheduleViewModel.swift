@@ -175,7 +175,7 @@ class BusScheduleViewModel: ObservableObject {
             let currentTotalMinutes = currentHour * 60 + currentMinute
             let scheduledTotalMinutes = scheduledHour * 60 + scheduledMinute
             
-            return currentTotalMinutes > scheduledTotalMinutes
+            return currentTotalMinutes >= scheduledTotalMinutes // 発車時刻ちょうどでも発車済とする
         }
         
         return false
