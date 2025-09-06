@@ -11,7 +11,7 @@ struct StationSelectionView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Header
-                Text("駅の選択")
+                Text("バス停の選択")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .padding(.top, 60)
@@ -21,7 +21,7 @@ struct StationSelectionView: View {
                 VStack(spacing: 16) {
                     // Departure Station
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("乗車駅")
+                        Text("出発バス停")
                             .font(.body)
                             .foregroundColor(.primary)
                         
@@ -51,7 +51,7 @@ struct StationSelectionView: View {
                     
                     // Arrival Station
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("降車駅")
+                        Text("到着バス停")
                             .font(.body)
                             .foregroundColor(.primary)
                         
