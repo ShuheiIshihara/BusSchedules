@@ -46,6 +46,15 @@ struct StationSelectionView: View {
                         Image(systemName: "arrow.up.arrow.down")
                             .font(.title2)
                             .foregroundColor(.blue)
+                            .frame(width: 44, height: 44)
+                            .background(
+                                Circle()
+                                    .fill(Color.blue.opacity(0.1))
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                    )
+                            )
                     }
                     .padding(.vertical, 8)
                     
