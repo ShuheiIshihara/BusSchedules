@@ -181,9 +181,10 @@ struct BusScheduleView: View {
                             schedule: schedule,
                             isPastTime: viewModel.isPastTime(schedule.departureTime),
                             isNextBus: viewModel.nextBusIndex == index,
-                            minutesUntil: viewModel.nextBusIndex == index ? viewModel.minutesUntilNextBus() : nil
+                            minutesUntil: viewModel.nextBusIndex == index ? viewModel.minutesUntilNextBus() : nil,
+                            currentTime: viewModel.currentTime
                         )
-                        .id("schedule_\(index)") // スクロール用のID
+                        .id("schedule_\(index)_\(Calendar.current.component(.minute, from: viewModel.currentTime))") // Update when minute changes
                         
                         if index < viewModel.busSchedules.count - 1 {
                             Divider()
@@ -199,8 +200,9 @@ struct BusScheduleView: View {
             .onChange(of: viewModel.nextBusIndex) { _, newIndex in
                 // 次のバスが変わった時に自動スクロール
                 if let index = newIndex {
+                    let currentMinute = Calendar.current.component(.minute, from: viewModel.currentTime)
                     withAnimation(.easeInOut(duration: 0.8)) {
-                        proxy.scrollTo("schedule_\(index)", anchor: .center)
+                        proxy.scrollTo("schedule_\(index)_\(currentMinute)", anchor: .center)
                     }
                 }
             }
@@ -208,8 +210,9 @@ struct BusScheduleView: View {
                 // 初回表示時に次のバスにスクロール
                 if let index = viewModel.nextBusIndex {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        let currentMinute = Calendar.current.component(.minute, from: viewModel.currentTime)
                         withAnimation(.easeInOut(duration: 0.8)) {
-                            proxy.scrollTo("schedule_\(index)", anchor: .center)
+                            proxy.scrollTo("schedule_\(index)_\(currentMinute)", anchor: .center)
                         }
                     }
                 }
@@ -249,6 +252,9 @@ struct BusScheduleRowView: View {
     let isNextBus: Bool
     let minutesUntil: Int?
     @State private var isExpanded: Bool = false
+    
+    // Force view update by making it depend on a changing value
+    let currentTime: Date
     
     var body: some View {
         Button(action: {
