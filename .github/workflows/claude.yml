@@ -9,6 +9,12 @@ on:
     types: [opened, assigned]
   pull_request_review:
     types: [submitted]
+  # 全ブランチ対応の追加トリガー
+  push:
+    branches: ['**']  # 全ブランチでのpushで実行
+  pull_request:
+    branches: ['**']  # 全ブランチのPRで実行
+    types: [opened, synchronize, reopened]
 
 jobs:
   claude:
@@ -16,20 +22,32 @@ jobs:
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude'))) ||
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
-      issues: read
+      contents: write  # writeに変更（全ブランチでの操作のため）
+      pull-requests: write  # writeに変更（PR作成・更新のため）
+      issues: write  # writeに変更（Issue更新のため）
       id-token: write
       actions: read # Required for Claude to read CI results on PRs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          # PRの場合はPRのブランチ、pushの場合はpushされたブランチを使用
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          fetch-depth: 0  # 全履歴を取得（ブランチ間比較のため）
 
+      - name: Display context information
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Current branch: ${{ github.ref_name }}"
+          echo "PR head ref: ${{ github.event.pull_request.head.ref }}"
+          echo "Base branch: ${{ github.event.pull_request.base.ref }}"
+          
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -40,11 +58,76 @@ jobs:
           additional_permissions: |
             actions: read
 
-          # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
-          # prompt: 'Update the pull request description to include a summary of changes.'
+          # 動的プロンプト（イベントタイプに応じて変更）
+          prompt: |
+            You are helping with the BusSchedules project.
+            
+            Context:
+            - Repository: ${{ github.repository }}
+            - Current branch: ${{ github.ref_name }}
+            - Event type: ${{ github.event_name }}
+            - Base branch: ${{ github.event.pull_request.base.ref || 'N/A' }}
+            
+            Instructions based on trigger:
+            {% if github.event_name == 'push' %}
+            - This was triggered by a push to branch: ${{ github.ref_name }}
+            - Please review the recent changes and provide a summary
+            - Suggest any improvements or identify potential issues
+            {% elif github.event_name == 'pull_request' %}
+            - This was triggered by a pull request action
+            - Please review the PR changes and provide feedback
+            - Check for code quality, potential bugs, and adherence to best practices
+            {% else %}
+            - This was triggered by a comment containing @claude
+            - Please respond to the specific request in the comment
+            - Comment content: "${{ github.event.comment.body || github.event.review.body || github.event.issue.body }}"
+            {% endif %}
+            
+            Please provide constructive and helpful feedback.
 
           # Optional: Add claude_args to customize behavior and configuration
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://docs.anthropic.com/en/docs/claude-code/sdk#command-line for available options
-          # claude_args: '--model claude-opus-4-1-20250805 --allowed-tools Bash(gh pr:*)'
+          claude_args: '--model claude-opus-4-1-20250805 --allowed-tools Bash(git:*),Bash(gh:*),View,GlobTool,GrepTool,Write'
 
+  # 追加ジョブ: ブランチ固有の処理
+  branch-specific-tasks:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          
+      - name: Branch-specific actions
+        run: |
+          BRANCH_NAME="${{ github.ref_name }}"
+          echo "Processing branch: $BRANCH_NAME"
+          
+          case $BRANCH_NAME in
+            main|master)
+              echo "Main branch detected - running production checks"
+              # 本番環境向けの追加チェックをここに追加
+              ;;
+            develop)
+              echo "Develop branch detected - running development checks"
+              # 開発環境向けの追加チェックをここに追加
+              ;;
+            feature/*)
+              echo "Feature branch detected - running feature checks"
+              # 機能ブランチ向けの追加チェックをここに追加
+              ;;
+            *)
+              echo "Other branch detected - running general checks"
+              ;;
+          esac
+          
+      - name: Set branch environment variables
+        run: |
+          echo "CURRENT_BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "IS_MAIN_BRANCH=${{ github.ref_name == 'main' || github.ref_name == 'master' }}" >> $GITHUB_ENV
+          echo "IS_DEVELOP_BRANCH=${{ github.ref_name == 'develop' }}" >> $GITHUB_ENV
