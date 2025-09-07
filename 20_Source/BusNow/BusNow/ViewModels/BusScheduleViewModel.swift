@@ -75,6 +75,7 @@ class BusScheduleViewModel: ObservableObject {
                 date: targetDate
             )
             busSchedules = schedules
+            updateServiceTypeFromScheduleData() // 取得データに基づいてサービスタイプを更新
             updateNextBusIndex() // 次のバスのインデックスを更新
         } catch {
             errorMessage = "時刻表の取得に失敗しました: \(error.localizedDescription)"
@@ -196,6 +197,19 @@ class BusScheduleViewModel: ObservableObject {
         let newIndex = findNextBusIndex()
         if nextBusIndex != newIndex {
             nextBusIndex = newIndex
+        }
+    }
+    
+    // 取得したスケジュールデータに基づいてサービスタイプを更新
+    private func updateServiceTypeFromScheduleData() {
+        guard let firstSchedule = busSchedules.first else { return }
+        
+        // serviceIdが "平日" の場合は weekday、それ以外は holiday
+        let newServiceType: ServiceType = (firstSchedule.serviceId == "平日") ? .weekday : .holiday
+        
+        // 現在の選択と異なる場合のみ更新
+        if selectedServiceType != newServiceType {
+            selectedServiceType = newServiceType
         }
     }
     

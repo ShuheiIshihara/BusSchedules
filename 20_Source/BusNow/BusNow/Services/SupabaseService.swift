@@ -339,6 +339,7 @@ struct BusScheduleData {
     let routeName: String
     let destination: String
     let platform: String
+    let serviceId: String
     
     // RPC レスポンスから BusScheduleData への変換（表示用正規化適用）
     init(from rpcResponse: BusScheduleRPCResponse) {
@@ -347,6 +348,7 @@ struct BusScheduleData {
         self.routeName = rpcResponse.routeName.normalizedForDisplay()
         self.destination = rpcResponse.destination.normalizedForDisplay()
         self.platform = rpcResponse.platform
+        self.serviceId = rpcResponse.serviceId
     }
     
     // 時刻文字列から秒を削除するヘルパー関数
@@ -361,11 +363,12 @@ struct BusScheduleData {
     }
     
     // 既存のイニシャライザーも保持（テスト用）
-    init(departureTime: String, routeName: String, destination: String, platform: String) {
+    init(departureTime: String, routeName: String, destination: String, platform: String, serviceId: String = "平日") {
         self.departureTime = departureTime
         self.routeName = routeName
         self.destination = destination
         self.platform = platform
+        self.serviceId = serviceId
     }
 }
 
