@@ -32,10 +32,15 @@ struct StationSelectionView: View {
                             
                             TextField("野並", text: $departureStation)
                                 .textFieldStyle(PlainTextFieldStyle())
+                                .tint(.blue)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(Color(.systemGray6))
+                        .background(Color(.systemGray5))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(.separator), lineWidth: 0.5)
+                        )
                         .cornerRadius(8)
                     }
                     
@@ -71,10 +76,15 @@ struct StationSelectionView: View {
                             
                             TextField("緑車庫", text: $arrivalStation)
                                 .textFieldStyle(PlainTextFieldStyle())
+                                .tint(.blue)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(Color(.systemGray6))
+                        .background(Color(.systemGray5))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(.separator), lineWidth: 0.5)
+                        )
                         .cornerRadius(8)
                     }
                 }
