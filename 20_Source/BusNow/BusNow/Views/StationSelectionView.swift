@@ -11,7 +11,7 @@ struct StationSelectionView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Header
-                Text("バス停の選択")
+                Text("バス停を入力")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .padding(.top, 60)
