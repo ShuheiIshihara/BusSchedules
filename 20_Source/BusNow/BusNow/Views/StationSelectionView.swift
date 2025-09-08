@@ -11,7 +11,7 @@ struct StationSelectionView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Header
-                Text("駅の選択")
+                Text("バス停の選択")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .padding(.top, 60)
@@ -21,7 +21,7 @@ struct StationSelectionView: View {
                 VStack(spacing: 16) {
                     // Departure Station
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("乗車駅")
+                        Text("出発バス停")
                             .font(.body)
                             .foregroundColor(.primary)
                         
@@ -32,10 +32,15 @@ struct StationSelectionView: View {
                             
                             TextField("野並", text: $departureStation)
                                 .textFieldStyle(PlainTextFieldStyle())
+                                .tint(.blue)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(Color(.systemGray6))
+                        .background(Color(.systemGray5))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(.separator), lineWidth: 0.5)
+                        )
                         .cornerRadius(8)
                     }
                     
@@ -46,12 +51,21 @@ struct StationSelectionView: View {
                         Image(systemName: "arrow.up.arrow.down")
                             .font(.title2)
                             .foregroundColor(.blue)
+                            .frame(width: 44, height: 44)
+                            .background(
+                                Circle()
+                                    .fill(Color.blue.opacity(0.1))
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                    )
+                            )
                     }
                     .padding(.vertical, 8)
                     
                     // Arrival Station
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("降車駅")
+                        Text("到着バス停")
                             .font(.body)
                             .foregroundColor(.primary)
                         
@@ -62,10 +76,15 @@ struct StationSelectionView: View {
                             
                             TextField("緑車庫", text: $arrivalStation)
                                 .textFieldStyle(PlainTextFieldStyle())
+                                .tint(.blue)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(Color(.systemGray6))
+                        .background(Color(.systemGray5))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(.separator), lineWidth: 0.5)
+                        )
                         .cornerRadius(8)
                     }
                 }

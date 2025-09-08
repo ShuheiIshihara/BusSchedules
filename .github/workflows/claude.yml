@@ -9,6 +9,9 @@ on:
     types: [opened, assigned]
   pull_request_review:
     types: [submitted]
+  pull_request:
+    branches: ['**']
+    types: [opened, synchronize, reopened]
 
 jobs:
   claude:
@@ -16,35 +19,72 @@ jobs:
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude'))) ||
+      github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
-      issues: read
+      contents: write
+      pull-requests: write
+      issues: write
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: read
+
     steps:
-      - name: Checkout repository
+      - name: Detect target branch
+        id: detect-branch
+        run: |
+          # デフォルトは develop
+          TARGET_BRANCH="develop"
+
+          if [[ "${{ github.event_name }}" == "issue_comment" || \
+                "${{ github.event_name }}" == "pull_request_review_comment" || \
+                "${{ github.event_name }}" == "pull_request_review" || \
+                "${{ github.event_name }}" == "issues" ]]; then
+            BODY="${{ github.event.comment.body || github.event.review.body || github.event.issue.body }}"
+            echo "Comment/Issue body: $BODY"
+
+            # 最初に出てきた「〇〇ブランチ」を抽出
+            if [[ "$BODY" =~ ([a-zA-Z0-9._/-]+)ブランチ ]]; then
+              TARGET_BRANCH="${BASH_REMATCH[1]}"
+            fi
+          else
+            # push/PR の場合は従来通り
+            TARGET_BRANCH="${{ github.event.pull_request.head.ref || github.ref_name }}"
+          fi
+
+          echo "Target branch resolved: $TARGET_BRANCH"
+          echo "TARGET_BRANCH=$TARGET_BRANCH" >> $GITHUB_ENV
+
+      - name: Checkout target branch
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+
+      - name: Display context information
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Target branch: $TARGET_BRANCH"
+          echo "Base branch: ${{ github.event.pull_request.base.ref || 'N/A' }}"
 
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          
-          # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
+          prompt: |
+            You are helping with the BusSchedules project.
 
-          # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
-          # prompt: 'Update the pull request description to include a summary of changes.'
+            Context:
+            - Repository: ${{ github.repository }}
+            - Target branch: ${{ env.TARGET_BRANCH }}
+            - Event type: ${{ github.event_name }}
+            - Base branch: ${{ github.event.pull_request.base.ref || 'N/A' }}
+            - Comment/Issue content: "${{ github.event.comment.body || github.event.review.body || github.event.issue.body }}"
 
-          # Optional: Add claude_args to customize behavior and configuration
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://docs.anthropic.com/en/docs/claude-code/sdk#command-line for available options
-          # claude_args: '--model claude-opus-4-1-20250805 --allowed-tools Bash(gh pr:*)'
+            Please provide constructive and helpful feedback.
 
+          claude_args: '--model claude-opus-4-1-20250805 --allowed-tools Bash(git:*),Bash(gh:*),View,GlobTool,GrepTool,Write'
