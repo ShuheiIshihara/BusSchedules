@@ -322,6 +322,7 @@ struct BusScheduleRPCResponse: Codable {
     let serviceType: String
     let departureMinutes: Double
     let serviceId: String
+    let busStops: [String]?  // バス停リスト（オプショナル）
     
     private enum CodingKeys: String, CodingKey {
         case departureTime = "departureTime"
@@ -331,6 +332,7 @@ struct BusScheduleRPCResponse: Codable {
         case serviceType = "serviceType"
         case departureMinutes = "departureMinutes"
         case serviceId = "serviceId"
+        case busStops = "busStops"
     }
 }
 
@@ -340,6 +342,7 @@ struct BusScheduleData {
     let destination: String
     let platform: String
     let serviceId: String
+    let busStops: [String]  // バス停リスト
     
     // RPC レスポンスから BusScheduleData への変換（表示用正規化適用）
     init(from rpcResponse: BusScheduleRPCResponse) {
@@ -349,6 +352,13 @@ struct BusScheduleData {
         self.destination = rpcResponse.destination.normalizedForDisplay()
         self.platform = rpcResponse.platform
         self.serviceId = rpcResponse.serviceId
+        
+        // バス停リストの正規化処理（重複を削除して表示用に整理）
+        if let stops = rpcResponse.busStops {
+            self.busStops = Self.processedBusStops(from: stops)
+        } else {
+            self.busStops = []
+        }
     }
     
     // 時刻文字列から秒を削除するヘルパー関数
@@ -362,13 +372,31 @@ struct BusScheduleData {
         return timeString
     }
     
+    // バス停リストの加工処理（重複を削除し、見やすく整理）
+    private static func processedBusStops(from rawStops: [String]) -> [String] {
+        var processedStops: [String] = []
+        var lastStop = ""
+        
+        for stop in rawStops {
+            let normalizedStop = stop.normalizedForDisplay()
+            // 連続する同じバス停名を除去（例: ["栄", "栄"] → ["栄"]）
+            if normalizedStop != lastStop && !normalizedStop.isEmpty {
+                processedStops.append(normalizedStop)
+                lastStop = normalizedStop
+            }
+        }
+        
+        return processedStops
+    }
+    
     // 既存のイニシャライザーも保持（テスト用）
-    init(departureTime: String, routeName: String, destination: String, platform: String, serviceId: String = "平日") {
+    init(departureTime: String, routeName: String, destination: String, platform: String, serviceId: String = "平日", busStops: [String] = []) {
         self.departureTime = departureTime
         self.routeName = routeName
         self.destination = destination
         self.platform = platform
         self.serviceId = serviceId
+        self.busStops = busStops
     }
 }
 

@@ -344,15 +344,25 @@ struct BusScheduleRowView: View {
                             .padding(.horizontal, 20)
                         
                         HStack {
-                            Text("詳細情報")
+                            Text("経由するバス停")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             
                             Spacer()
                         }
                         .padding(.horizontal, 20)
-                        .padding(.bottom, 8)
+                        
+                        if !schedule.busStops.isEmpty {
+                            BusStopsView(busStops: schedule.busStops)
+                                .padding(.horizontal, 20)
+                        } else {
+                            Text("バス停情報がありません")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 20)
+                        }
                     }
+                    .padding(.bottom, 8)
                 }
             }
         }
@@ -366,6 +376,48 @@ struct BusScheduleRowView: View {
                 .stroke(isNextBus ? Color.blue : Color.clear, lineWidth: isNextBus ? 2 : 0)
         )
         .padding(.horizontal, isNextBus ? 16 : 0)
+    }
+}
+
+struct BusStopsView: View {
+    let busStops: [String]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(busStops.enumerated()), id: \.offset) { index, stop in
+                HStack(spacing: 8) {
+                    // バス停アイコンまたは番号
+                    Text("\(index + 1)")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.blue)
+                        .frame(width: 20, height: 20)
+                        .background(
+                            Circle()
+                                .fill(Color.blue.opacity(0.1))
+                        )
+                    
+                    Text(stop)
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                }
+                .padding(.vertical, 2)
+                
+                // 最後の要素以外は点線を表示
+                if index < busStops.count - 1 {
+                    HStack {
+                        Rectangle()
+                            .fill(Color.blue.opacity(0.3))
+                            .frame(width: 2, height: 8)
+                            .padding(.leading, 9) // アイコンの中心に合わせる
+                        
+                        Spacer()
+                    }
+                }
+            }
+        }
     }
 }
 
