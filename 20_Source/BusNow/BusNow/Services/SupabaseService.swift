@@ -355,7 +355,7 @@ struct BusScheduleData {
         
         // バス停リストの正規化処理（重複を削除して表示用に整理）
         if let stops = rpcResponse.busStops {
-            self.busStops = Self.processedBusStops(from: stops)
+            self.busStops = stops
         } else {
             self.busStops = []
         }
@@ -370,23 +370,6 @@ struct BusScheduleData {
         }
         // すでにHH:MM形式の場合はそのまま返す
         return timeString
-    }
-    
-    // バス停リストの加工処理（重複を削除し、見やすく整理）
-    private static func processedBusStops(from rawStops: [String]) -> [String] {
-        var processedStops: [String] = []
-        var lastStop = ""
-        
-        for stop in rawStops {
-            let normalizedStop = stop.normalizedForDisplay()
-            // 連続する同じバス停名を除去（例: ["栄", "栄"] → ["栄"]）
-            if normalizedStop != lastStop && !normalizedStop.isEmpty {
-                processedStops.append(normalizedStop)
-                lastStop = normalizedStop
-            }
-        }
-        
-        return processedStops
     }
     
     // 既存のイニシャライザーも保持（テスト用）
