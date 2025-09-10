@@ -4,6 +4,7 @@ struct StationSelectionView: View {
     @StateObject private var viewModel = StationSelectionViewModel()
     @State private var departureStation = ""
     @State private var arrivalStation = ""
+    @State private var showingClearAlert = false
     
     var onStationsPaired: (StationPair) -> Void
     
@@ -120,7 +121,7 @@ struct StationSelectionView: View {
                             Spacer()
                             
                             Button("クリア") {
-                                viewModel.clearHistory()
+                                showingClearAlert = true
                             }
                             .font(.body)
                             .foregroundColor(.blue)
@@ -181,6 +182,14 @@ struct StationSelectionView: View {
         .background(Color(.systemGroupedBackground))
         .onAppear {
             loadSavedStations()
+        }
+        .alert("検索履歴をクリア", isPresented: $showingClearAlert) {
+            Button("キャンセル", role: .cancel) { }
+            Button("クリア", role: .destructive) {
+                viewModel.clearHistory()
+            }
+        } message: {
+            Text("検索履歴を削除しますか？この操作は取り消すことができません。")
         }
     }
     
