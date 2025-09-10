@@ -81,7 +81,7 @@ class SupabaseService: ObservableObject {
                 "target_date": dateString
             ]
             
-            let response = try await client.rpc("get_phase1_bus_schedule", params: rpcParams).execute()
+            let response = try await client.rpc("get_phase1_bus_schedule_2", params: rpcParams).execute()
             let data = response.data
             
             // レスポンスデータの詳細ログ
