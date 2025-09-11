@@ -341,6 +341,22 @@ struct BusScheduleRowView: View {
                         Divider()
                             .padding(.horizontal, 20)
                         
+                        // 最終目的地の表示
+                        HStack {
+                            Text("行き先")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        Text(schedule.destination.normalizedForDisplay())
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 4)
+                        
                         HStack {
                             Text("経由するバス停")
                                 .font(.caption)
