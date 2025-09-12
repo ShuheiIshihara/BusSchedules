@@ -59,12 +59,8 @@ class BusScheduleViewModel: ObservableObject {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                do {
-                    self.currentTime = Date()
-                    self.updateNextBusIndex() // 時間経過に伴う次のバス更新
-                } catch {
-                    print("タイマー処理エラー: \(error)")
-                }
+                self.currentTime = Date()
+                self.updateNextBusIndex() // 時間経過に伴う次のバス更新
             }
         }
         RunLoop.main.add(timer!, forMode: .common) // Runloopに追加して安定性を向上
