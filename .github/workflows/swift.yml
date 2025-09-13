@@ -29,7 +29,12 @@ jobs:
 
     - name: Build
       run: |
-           swift build -v
+           xcodebuild -project BusNow.xcodeproj \
+                     -scheme BusNow \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     -archivePath $RUNNER_TEMP/App.xcarchive \
+                     clean archive
     - name: Run tests
       run: |
            swift test -v
