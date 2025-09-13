@@ -20,7 +20,7 @@ jobs:
     # Config-Local.xcconfig を生成
     - name: Generate Config-Local.xcconfig
       run: |
-        cd /Volumes/workspace/repository/20_Source/BusNow
+        cd ~/20_Source/BusNow
         cp Config-Local.xcconfig.template Config-Local.xcconfig
         sed -i "" "s|\${SUPABASE_DOMAIN}|${{ secrets.SUPABASE_DOMAIN }}|g" Config-Local.xcconfig
         sed -i "" "s|\${SUPABASE_ANON_KEY}|${{ secrets.SUPABASE_ANON_KEY }}|g" Config-Local.xcconfig
