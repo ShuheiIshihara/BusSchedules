@@ -32,8 +32,7 @@
 ### 主要コンポーネント
 
 ```
-BusNow/
-├── Application/           # アプリエントリーポイント
+20_Source/BusNow/BusNow/
 ├── Models/               # データモデル
 │   └── StationPair.swift
 ├── ViewModels/           # MVVM ViewModels
@@ -46,8 +45,10 @@ BusNow/
 ├── Services/             # ビジネスロジック層
 │   ├── SupabaseService.swift
 │   └── SupabaseConfig.swift
-└── Utils/                # ユーティリティ
-    └── StringNormalization.swift
+├── Utils/                # ユーティリティ
+│   └── StringNormalization.swift
+├── Assets.xcassets       # アプリアセット
+└── BusNowApp.swift      # アプリエントリーポイント
 ```
 
 ## 🚀 セットアップ
@@ -136,6 +137,7 @@ open BusNow.xcodeproj
 ### ユニットテスト
 
 ```bash
+cd 20_Source/BusNow
 xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
 
@@ -143,6 +145,7 @@ xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 
 
 ```bash
 # 文字正規化テスト
+cd 20_Source/BusNow
 xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:BusNowTests/StringNormalizationTests
 ```
 
@@ -158,33 +161,36 @@ xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 
 
 ### ✅ 実装済み
 
+- [x] Xcodeプロジェクト作成とSupabase SDK統合
 - [x] 停留所選択機能（名古屋市営バス停留所）
-- [x] バス時刻表表示（GTFS-JPデータ使用）
-- [x] 平日・土日祝切り替え
-- [x] 行き・帰り切り替え
-- [x] リアルタイム時計
-- [x] 次のバス自動フォーカス
-- [x] 接近情報連携
+- [x] Supabase設定基盤（セキュア版）
 - [x] 文字正規化対応
+- [x] StationPairモデル実装
 
 ### 🔄 今後の予定
 
-- [ ] 設定画面の改善
+- [ ] バス時刻表表示（GTFS-JPデータ使用）
+- [ ] 平日・土日祝切り替え
+- [ ] 行き・帰り切り替え
+- [ ] リアルタイム時計
+- [ ] 次のバス自動フォーカス
+- [ ] 接近情報連携
 - [ ] プッシュ通知
 - [ ] お気に入り機能
-- [ ] 履歴機能の拡張
 
 ## 🛠️ 開発コマンド
 
 ### ビルド
 
 ```bash
+cd 20_Source/BusNow
 xcodebuild -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16' build
 ```
 
 ### 型チェック
 
 ```bash
+cd 20_Source/BusNow
 xcodebuild -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16' -configuration Debug -showBuildSettings | grep SWIFT_ENFORCE_EXCLUSIVE_ACCESS
 ```
 
