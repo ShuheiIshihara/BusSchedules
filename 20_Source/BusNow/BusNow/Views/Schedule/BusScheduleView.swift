@@ -3,6 +3,7 @@ import SwiftUI
 struct BusScheduleView: View {
     @StateObject private var viewModel: BusScheduleViewModel
     let onBack: () -> Void
+    @State private var showingProximityInfo = false
     
     init(stationPair: StationPair, onBack: @escaping () -> Void) {
         self._viewModel = StateObject(wrappedValue: BusScheduleViewModel(stationPair: stationPair))
@@ -31,6 +32,12 @@ struct BusScheduleView: View {
         .refreshable {
             viewModel.refreshSchedules()
         }
+        .sheet(isPresented: $showingProximityInfo) {
+            BusProximityWebView(
+                departureStation: viewModel.stationPair.departureStation,
+                arrivalStation: viewModel.stationPair.arrivalStation
+            )
+        }
     }
     
     private var headerSection: some View {
@@ -47,6 +54,18 @@ struct BusScheduleView: View {
                 }
                 
                 Spacer()
+                
+                Button(action: {
+                    showingProximityInfo = true
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "bus.fill")
+                            .font(.body)
+                        Text("接近情報")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.blue)
+                }
             }
             .padding(.horizontal, 20)
             
