@@ -34,6 +34,7 @@ jobs:
                      -sdk iphoneos \
                      -configuration Release \
                      -archivePath $RUNNER_TEMP/App.xcarchive \
+                     -allowProvisioningUpdates \
                      clean archive
     - name: Run tests
       run: |
