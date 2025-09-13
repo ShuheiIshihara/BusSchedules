@@ -3,6 +3,7 @@ import SwiftUI
 struct BusScheduleView: View {
     @StateObject private var viewModel: BusScheduleViewModel
     let onBack: () -> Void
+    @State private var showingProximityInfo = false
     
     init(stationPair: StationPair, onBack: @escaping () -> Void) {
         self._viewModel = StateObject(wrappedValue: BusScheduleViewModel(stationPair: stationPair))
@@ -31,6 +32,12 @@ struct BusScheduleView: View {
         .refreshable {
             viewModel.refreshSchedules()
         }
+        .sheet(isPresented: $showingProximityInfo) {
+            BusProximityWebView(
+                departureStation: viewModel.stationPair.departureStation,
+                arrivalStation: viewModel.stationPair.arrivalStation
+            )
+        }
     }
     
     private var headerSection: some View {
@@ -47,6 +54,18 @@ struct BusScheduleView: View {
                 }
                 
                 Spacer()
+                
+                Button(action: {
+                    showingProximityInfo = true
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "bus.fill")
+                            .font(.body)
+                        Text("接近情報")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.blue)
+                }
             }
             .padding(.horizontal, 20)
             
@@ -184,7 +203,7 @@ struct BusScheduleView: View {
                             minutesUntil: viewModel.nextBusIndex == index ? viewModel.minutesUntilNextBus() : nil,
                             currentTime: viewModel.currentTime
                         )
-                        .id("schedule_\(index)_\(Calendar.current.component(.minute, from: viewModel.currentTime))") // Update when minute changes
+                        .id("schedule_\(index)") // 固定IDに変更してView再生成を防ぐ
                         
                         if index < viewModel.busSchedules.count - 1 {
                             Divider()
@@ -200,9 +219,8 @@ struct BusScheduleView: View {
             .onChange(of: viewModel.nextBusIndex) { _, newIndex in
                 // 次のバスが変わった時に自動スクロール
                 if let index = newIndex {
-                    let currentMinute = Calendar.current.component(.minute, from: viewModel.currentTime)
                     withAnimation(.easeInOut(duration: 0.8)) {
-                        proxy.scrollTo("schedule_\(index)_\(currentMinute)", anchor: .center)
+                        proxy.scrollTo("schedule_\(index)", anchor: .center)
                     }
                 }
             }
@@ -210,9 +228,8 @@ struct BusScheduleView: View {
                 // 初回表示時に次のバスにスクロール
                 if let index = viewModel.nextBusIndex {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        let currentMinute = Calendar.current.component(.minute, from: viewModel.currentTime)
                         withAnimation(.easeInOut(duration: 0.8)) {
-                            proxy.scrollTo("schedule_\(index)_\(currentMinute)", anchor: .center)
+                            proxy.scrollTo("schedule_\(index)", anchor: .center)
                         }
                     }
                 }
@@ -257,106 +274,126 @@ struct BusScheduleRowView: View {
     let currentTime: Date
     
     var body: some View {
-        Button(action: {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isExpanded.toggle()
-            }
-        }) {
-            VStack(spacing: 0) {
-                HStack(alignment: .center, spacing: 12) {
-                    // Time Display
-                    VStack {
-                        Text(schedule.departureTime)
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(isPastTime ? .gray : .primary)
-                        
-                        if isPastTime {
-                            Text("発車済")
-                                .font(.caption2)
-                                .foregroundColor(.gray)
-                        } else if isNextBus {
-                            if let minutes = minutesUntil {
-                                Text(minutes == 1 ? "まもなく" : "あと\(minutes)分")
-                                    .font(.caption2)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.blue)
-                            } else {
-                                Text("次のバス")
-                                    .font(.caption2)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                    .frame(width: 60, alignment: .leading)
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 12) {
+                // Time Display
+                VStack {
+                    Text(schedule.departureTime)
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(isPastTime ? .gray : .primary)
                     
-                    // Route and Destination Info
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(schedule.routeName.normalizedForDisplay())
+                    if isPastTime {
+                        Text("発車済")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    } else if isNextBus {
+                        if let minutes = minutesUntil {
+                            Text(minutes == 1 ? "まもなく" : "あと\(minutes)分")
+                                .font(.caption2)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(Color.orange)
-                                .cornerRadius(4)
-                            
-                            Text(schedule.destination.normalizedForDisplay())
-                                .foregroundColor(isPastTime ? .gray : .primary)
-                                .lineLimit(1)
-                        }
-                        
-                        if !isExpanded {
-                            Text("タップして詳細を表示")
-                                .font(.caption)
+                                .foregroundColor(.blue)
+                        } else {
+                            Text("次のバス")
+                                .font(.caption2)
+                                .fontWeight(.semibold)
                                 .foregroundColor(.blue)
                         }
                     }
-                    
-                    Spacer()
-                    
-                    // Platform and Info Button
-                    VStack(spacing: 8) {
-                        Button(action: {
-                            // のりば情報表示処理
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "location")
-                                    .font(.caption)
-                                Text("のりば")
-                                    .font(.caption)
-                            }
-                            .foregroundColor(.blue)
-                        }
+                }
+                .frame(width: 60, alignment: .leading)
+                
+                // Route and Destination Info
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(schedule.routeName.normalizedForDisplay())
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Color.orange)
+                            .cornerRadius(4)
                         
-                        Text(schedule.platform)
+                        Text(schedule.destination.normalizedForDisplay())
+                            .foregroundColor(isPastTime ? .gray : .primary)
+                            .lineLimit(1)
+                    }
+                    
+                    if !isExpanded {
+                        Text("タップして詳細を表示")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.blue)
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
                 
-                if isExpanded {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Divider()
-                            .padding(.horizontal, 20)
-                        
-                        HStack {
-                            Text("詳細情報")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Spacer()
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 8)
+                Spacer()
+                
+                // Platform and Info Button
+                VStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "location")
+                            .font(.caption)
+                        Text("のりば")
+                            .font(.caption)
                     }
+                    .foregroundColor(.blue)
+                    
+                    Text(schedule.platform)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 8) {
+                    Divider()
+                        .padding(.horizontal, 20)
+                    
+                    // 最終目的地の表示
+                    HStack {
+                        Text(schedule.routeName.normalizedForDisplay())
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Color.orange)
+                            .cornerRadius(4)
+                        
+                        Text(schedule.destination.normalizedForDisplay())
+                            .foregroundColor(.primary)
+                            .lineLimit(3)
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    HStack {
+                        Text("経由するバス停")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    if !schedule.busStops.isEmpty {
+                        BusStopsView(busStops: schedule.busStops)
+                            .padding(.horizontal, 20)
+                    } else {
+                        Text("バス停情報がありません")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 20)
+                    }
+                }
+                .padding(.bottom, 8)
+            }
         }
-        .buttonStyle(PlainButtonStyle())
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isExpanded.toggle()
+            }
+        }
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isNextBus ? Color.blue.opacity(0.1) : Color.clear)
@@ -366,6 +403,48 @@ struct BusScheduleRowView: View {
                 .stroke(isNextBus ? Color.blue : Color.clear, lineWidth: isNextBus ? 2 : 0)
         )
         .padding(.horizontal, isNextBus ? 16 : 0)
+    }
+}
+
+struct BusStopsView: View {
+    let busStops: [String]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(busStops.enumerated()), id: \.offset) { index, stop in
+                HStack(spacing: 8) {
+                    // バス停アイコンまたは番号
+                    Text("\(index + 1)")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.blue)
+                        .frame(width: 20, height: 20)
+                        .background(
+                            Circle()
+                                .fill(Color.blue.opacity(0.1))
+                        )
+                    
+                    Text(stop)
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                }
+                .padding(.vertical, 2)
+                
+                // 最後の要素以外は点線を表示
+                if index < busStops.count - 1 {
+                    HStack {
+                        Rectangle()
+                            .fill(Color.blue.opacity(0.3))
+                            .frame(width: 2, height: 8)
+                            .padding(.leading, 9) // アイコンの中心に合わせる
+                        
+                        Spacer()
+                    }
+                }
+            }
+        }
     }
 }
 

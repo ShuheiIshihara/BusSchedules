@@ -81,7 +81,7 @@ class SupabaseService: ObservableObject {
                 "target_date": dateString
             ]
             
-            let response = try await client.rpc("get_phase1_bus_schedule", params: rpcParams).execute()
+            let response = try await client.rpc("get_phase1_bus_schedule_2", params: rpcParams).execute()
             let data = response.data
             
             // レスポンスデータの詳細ログ
@@ -322,6 +322,7 @@ struct BusScheduleRPCResponse: Codable {
     let serviceType: String
     let departureMinutes: Double
     let serviceId: String
+    let busStops: [String]?  // バス停リスト（オプショナル）
     
     private enum CodingKeys: String, CodingKey {
         case departureTime = "departureTime"
@@ -331,6 +332,7 @@ struct BusScheduleRPCResponse: Codable {
         case serviceType = "serviceType"
         case departureMinutes = "departureMinutes"
         case serviceId = "serviceId"
+        case busStops = "busStops"
     }
 }
 
@@ -340,6 +342,7 @@ struct BusScheduleData {
     let destination: String
     let platform: String
     let serviceId: String
+    let busStops: [String]  // バス停リスト
     
     // RPC レスポンスから BusScheduleData への変換（表示用正規化適用）
     init(from rpcResponse: BusScheduleRPCResponse) {
@@ -349,6 +352,13 @@ struct BusScheduleData {
         self.destination = rpcResponse.destination.normalizedForDisplay()
         self.platform = rpcResponse.platform
         self.serviceId = rpcResponse.serviceId
+        
+        // バス停リストの正規化処理（重複を削除して表示用に整理）
+        if let stops = rpcResponse.busStops {
+            self.busStops = stops
+        } else {
+            self.busStops = []
+        }
     }
     
     // 時刻文字列から秒を削除するヘルパー関数
@@ -363,12 +373,13 @@ struct BusScheduleData {
     }
     
     // 既存のイニシャライザーも保持（テスト用）
-    init(departureTime: String, routeName: String, destination: String, platform: String, serviceId: String = "平日") {
+    init(departureTime: String, routeName: String, destination: String, platform: String, serviceId: String = "平日", busStops: [String] = []) {
         self.departureTime = departureTime
         self.routeName = routeName
         self.destination = destination
         self.platform = platform
         self.serviceId = serviceId
+        self.busStops = busStops
     }
 }
 

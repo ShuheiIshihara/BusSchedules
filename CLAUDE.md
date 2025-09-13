@@ -4,90 +4,99 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an iOS bus schedule app project that helps families track multiple bus routes with real-time information. The app aggregates timetables and proximity information for commonly used bus lines into a single application.
+This is **BusNow**, an iOS bus schedule app specifically designed for Nagoya City Bus routes. The app uses GTFS-JP (General Transit Feed Specification - Japan) format data to provide accurate timetable information and real-time bus approach information for Nagoya City Bus users.
 
 ## Architecture
 
 - **Pattern**: MVVM (Model-View-ViewModel) + Service Layer
 - **UI Framework**: SwiftUI
 - **Target Platform**: iOS (private distribution, not App Store)
+- **Data Format**: GTFS-JP compliant
+- **Target Service**: Nagoya City Bus only (unofficial app)
 
 ### Core Components
 
-- **Models**: `RouteSetting`, `BusSchedule`, `Holiday`
+- **Models**: `StationPair` (GTFS-JP based station pairing)
 - **Services**: 
-  - `SupabaseService` (Supabase database integration)
-  - `HolidayService` (holiday data management from database)
-  - `PersistenceService` (data storage)
-- **ViewModels**: `ScheduleViewModel`, `SettingsViewModel`
-- **Views**: Schedule views, Settings views, WebView component
+  - `SupabaseService` (Supabase database integration with GTFS-JP data)
+  - `SupabaseConfig` (secure configuration management)
+- **ViewModels**: `StationSelectionViewModel`, `BusScheduleViewModel`
+- **Views**: Station selection views, Schedule views, WebView component
+- **Utils**: `StringNormalization` (Japanese text processing)
 
 ## Project Structure
 
 ```
-BusSchedules/
-├── BusSchedules/                    # Main app source
-│   ├── Application/                 # App entry point
-│   ├── Models/                      # Data models
+20_Source/BusNow/
+├── BusNow/                          # Main app source
+│   ├── Models/                      # Data models (StationPair)
 │   ├── ViewModels/                  # MVVM view models
 │   ├── Views/                       # SwiftUI views
-│   │   ├── Schedule/
-│   │   ├── Settings/
-│   │   └── Common/
-│   └── Services/                    # Business logic layer
-├── BusSchedulesTests/               # Unit tests
-└── BusSchedulesUITests/             # UI tests
+│   │   ├── StationSelectionView.swift
+│   │   └── Schedule/
+│   ├── Services/                    # Business logic layer
+│   │   ├── SupabaseService.swift
+│   │   └── SupabaseConfig.swift
+│   ├── Utils/                       # Utility functions
+│   │   └── StringNormalization.swift
+│   ├── Assets.xcassets              # App assets
+│   └── BusNowApp.swift             # App entry point
+├── BusNowTests/                     # Unit tests
+└── BusNowUITests/                   # UI tests
 ```
 
 ## Key Features
 
-- **Dual Tab Interface**: "Outbound" (行き) and "Inbound" (帰り) schedule switching
+- **Station Selection Interface**: Select departure and arrival stations for Nagoya City Bus routes
+- **GTFS-JP Integration**: Uses standard GTFS-JP format data for accurate timetable information
 - **Real-time Clock**: Current time displayed with second precision (HH:MM:SS)
 - **Schedule List**: Displays departure time, route name, destination, platform number
 - **Automatic Day/Holiday Detection**: Selects appropriate timetable based on weekday/holiday
 - **Proximity Info Integration**: In-app browser for bus approach information
 - **Dynamic Visual Updates**: Grays out past departure times
-- **Multi-route Support**: Handles multiple bus routes per direction from Supabase database
+- **Nagoya City Bus Focus**: Specialized for Nagoya City Bus routes only
 
 ## Development Commands
 
-**Note**: This project is currently in the design phase. When the Xcode project is created:
+**Note**: Xcode project is located at `20_Source/BusNow/BusNow.xcodeproj`
 
-- Build: `xcodebuild -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16'`
-- Test: `xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16'`
+- Build: `cd 20_Source/BusNow && xcodebuild -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16'`
+- Test: `cd 20_Source/BusNow && xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16'`
 - Run single test: Use Xcode's test navigator or command line with specific test methods
 
 ## External Dependencies
 
-- **Supabase Integration**: Supabase Swift SDK for database access
+- **Supabase Integration**: Supabase Swift SDK for GTFS-JP database access
   - **Authentication**: Anonymous access (no user registration required)
   - **Security**: Row Level Security (RLS) for public data access control
   - **API**: REST API for synchronous data retrieval
-- **Data Source**: Supabase PostgreSQL database
-- **Persistence**: UserDefaults or SwiftData for settings storage
+  - **Configuration**: Secure config management with `.xcconfig` files
+- **Data Source**: Supabase PostgreSQL database with GTFS-JP format data
+- **Persistence**: UserDefaults for app settings storage
 
 ## Data Models
 
-- **RouteSetting**: Configuration entity with id, name, GTFS route identifiers for both directions, proximity URLs
-- **BusSchedule**: Individual bus entry with departure time, route name, destination, platform
-- **Holiday**: Date and name from holiday API
+- **StationPair**: Core model representing departure and arrival station pairing
+- **GTFS-JP Models**: Standard GTFS-JP entities (stops, routes, trips, stop_times, calendar)
+- **Bus Schedule Data**: Individual bus entry with departure time, route name, destination, platform from GTFS-JP data
 
 ## UI Specifications
 
-- **Main Screen**: Setting title display, tab control for direction switching, real-time clock, bus schedule list, proximity info button
-- **Settings Screen**: CRUD operations for route configurations with name, GTFS route identifiers, proximity URLs
+- **Station Selection Screen**: Select departure and arrival stations from Nagoya City Bus stops
+- **Schedule Screen**: Display bus timetable with real-time clock, schedule list, proximity info button
+- **Direction Switching**: Toggle between outbound (行き) and inbound (帰り) schedules
 - **WebView Component**: In-app browser for displaying bus proximity information
 
 ## Development Phases
 
-1. **Project Setup**: Xcode project creation, Supabase SDK integration
-2. **Data Layer**: Supabase service, holiday service, persistence
-3. **Persistence**: Settings storage with UserDefaults/SwiftData
-4. **UI Implementation**: Settings screens, schedule display, WebView
-5. **Integration**: Data-UI binding, database connectivity, testing
+1. **Project Setup**: Xcode project creation, Supabase SDK integration ✅
+2. **Data Layer**: Supabase service with GTFS-JP integration ✅
+3. **Station Selection**: UI for selecting Nagoya City Bus stops ✅
+4. **Schedule Display**: Timetable view with real-time updates 🔄
+5. **Integration**: Data-UI binding, database connectivity, testing 🔄
 
 ## Testing Strategy
 
 - **Unit Tests**: Service layer logic, ViewModels, data models
 - **UI Tests**: User interaction flows, screen navigation
-- **Mock Objects**: Located in `BusSchedulesTests/Mocks/`
+- **Mock Objects**: Located in `BusNowTests/Mocks/`
