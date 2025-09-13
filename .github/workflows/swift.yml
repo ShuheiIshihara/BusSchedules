@@ -28,8 +28,8 @@ jobs:
         sed -i "" "s|\${SUPABASE_ANON_KEY}|${{ secrets.SUPABASE_ANON_KEY }}|g" Config-Local.xcconfig
 
     - name: Build
-      run:
+      run: |
            swift build -v
     - name: Run tests
-      run:
+      run: |
            swift test -v
