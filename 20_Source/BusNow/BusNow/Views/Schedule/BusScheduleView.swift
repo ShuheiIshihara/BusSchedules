@@ -255,132 +255,126 @@ struct BusScheduleRowView: View {
     let currentTime: Date
     
     var body: some View {
-        Button(action: {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isExpanded.toggle()
-            }
-        }) {
-            VStack(spacing: 0) {
-                HStack(alignment: .center, spacing: 12) {
-                    // Time Display
-                    VStack {
-                        Text(schedule.departureTime)
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(isPastTime ? .gray : .primary)
-                        
-                        if isPastTime {
-                            Text("発車済")
-                                .font(.caption2)
-                                .foregroundColor(.gray)
-                        } else if isNextBus {
-                            if let minutes = minutesUntil {
-                                Text(minutes == 1 ? "まもなく" : "あと\(minutes)分")
-                                    .font(.caption2)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.blue)
-                            } else {
-                                Text("次のバス")
-                                    .font(.caption2)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                    .frame(width: 60, alignment: .leading)
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 12) {
+                // Time Display
+                VStack {
+                    Text(schedule.departureTime)
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(isPastTime ? .gray : .primary)
                     
-                    // Route and Destination Info
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(schedule.routeName.normalizedForDisplay())
+                    if isPastTime {
+                        Text("発車済")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    } else if isNextBus {
+                        if let minutes = minutesUntil {
+                            Text(minutes == 1 ? "まもなく" : "あと\(minutes)分")
+                                .font(.caption2)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(Color.orange)
-                                .cornerRadius(4)
-                            
-                            Text(schedule.destination.normalizedForDisplay())
-                                .foregroundColor(isPastTime ? .gray : .primary)
-                                .lineLimit(1)
-                        }
-                        
-                        if !isExpanded {
-                            Text("タップして詳細を表示")
-                                .font(.caption)
+                                .foregroundColor(.blue)
+                        } else {
+                            Text("次のバス")
+                                .font(.caption2)
+                                .fontWeight(.semibold)
                                 .foregroundColor(.blue)
                         }
                     }
-                    
-                    Spacer()
-                    
-                    // Platform and Info Button
-                    VStack(spacing: 8) {
-                        Button(action: {
-                            // のりば情報表示処理
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "location")
-                                    .font(.caption)
-                                Text("のりば")
-                                    .font(.caption)
-                            }
-                            .foregroundColor(.blue)
-                        }
+                }
+                .frame(width: 60, alignment: .leading)
+                
+                // Route and Destination Info
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(schedule.routeName.normalizedForDisplay())
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Color.orange)
+                            .cornerRadius(4)
                         
-                        Text(schedule.platform)
+                        Text(schedule.destination.normalizedForDisplay())
+                            .foregroundColor(isPastTime ? .gray : .primary)
+                            .lineLimit(1)
+                    }
+                    
+                    if !isExpanded {
+                        Text("タップして詳細を表示")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.blue)
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
                 
-                if isExpanded {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Divider()
-                            .padding(.horizontal, 20)
-                        
-                        // 最終目的地の表示
-                        HStack {
-                            Text(schedule.routeName.normalizedForDisplay())
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(Color.orange)
-                                .cornerRadius(4)
-                            
-                            Text(schedule.destination.normalizedForDisplay())
-                                .foregroundColor(.primary)
-                                .lineLimit(1)
-                        }
-                        .padding(.horizontal, 20)
-                        
-                        HStack {
-                            Text("経由するバス停")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Spacer()
-                        }
-                        .padding(.horizontal, 20)
-                        
-                        if !schedule.busStops.isEmpty {
-                            BusStopsView(busStops: schedule.busStops)
-                                .padding(.horizontal, 20)
-                        } else {
-                            Text("バス停情報がありません")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal, 20)
-                        }
+                Spacer()
+                
+                // Platform and Info Button
+                VStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "location")
+                            .font(.caption)
+                        Text("のりば")
+                            .font(.caption)
                     }
-                    .padding(.bottom, 8)
+                    .foregroundColor(.blue)
+                    
+                    Text(schedule.platform)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 8) {
+                    Divider()
+                        .padding(.horizontal, 20)
+                    
+                    // 最終目的地の表示
+                    HStack {
+                        Text(schedule.routeName.normalizedForDisplay())
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Color.orange)
+                            .cornerRadius(4)
+                        
+                        Text(schedule.destination.normalizedForDisplay())
+                            .foregroundColor(.primary)
+                            .lineLimit(3)
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    HStack {
+                        Text("経由するバス停")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    if !schedule.busStops.isEmpty {
+                        BusStopsView(busStops: schedule.busStops)
+                            .padding(.horizontal, 20)
+                    } else {
+                        Text("バス停情報がありません")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 20)
+                    }
+                }
+                .padding(.bottom, 8)
+            }
         }
-        .buttonStyle(PlainButtonStyle())
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isExpanded.toggle()
+            }
+        }
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isNextBus ? Color.blue.opacity(0.1) : Color.clear)
