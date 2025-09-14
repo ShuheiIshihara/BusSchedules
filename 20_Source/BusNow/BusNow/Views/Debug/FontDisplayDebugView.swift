@@ -152,9 +152,9 @@ struct FontDisplayDebugView: View {
                 .background(Color(.secondarySystemGroupedBackground))
                 .cornerRadius(8)
                 
-                Button("「高辻」検索テストを実行") {
+                Button("接続テストを実行") {
                     Task {
-                        _ = await SupabaseService.shared.testTakatsujiSearch()
+                        _ = await SupabaseService.shared.testConnection()
                     }
                 }
                 .font(.caption)

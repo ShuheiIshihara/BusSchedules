@@ -4,6 +4,7 @@ struct BusScheduleView: View {
     @StateObject private var viewModel: BusScheduleViewModel
     let onBack: () -> Void
     @State private var showingProximityInfo = false
+    @State private var showingSettings = false
     
     init(stationPair: StationPair, onBack: @escaping () -> Void) {
         self._viewModel = StateObject(wrappedValue: BusScheduleViewModel(stationPair: stationPair))
@@ -38,6 +39,9 @@ struct BusScheduleView: View {
                 arrivalStation: viewModel.stationPair.arrivalStation
             )
         }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
     }
     
     private var headerSection: some View {
@@ -55,16 +59,26 @@ struct BusScheduleView: View {
                 
                 Spacer()
                 
-                Button(action: {
-                    showingProximityInfo = true
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "bus.fill")
-                            .font(.body)
-                        Text("接近情報")
-                            .font(.caption)
+                HStack(spacing: 12) {
+                    Button(action: {
+                        showingProximityInfo = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bus.fill")
+                                .font(.body)
+                            Text("接近情報")
+                                .font(.caption)
+                        }
+                        .foregroundColor(.blue)
                     }
-                    .foregroundColor(.blue)
+                    
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Image(systemName: "gearshape")
+                            .font(.body)
+                            .foregroundColor(.blue)
+                    }
                 }
             }
             .padding(.horizontal, 20)
