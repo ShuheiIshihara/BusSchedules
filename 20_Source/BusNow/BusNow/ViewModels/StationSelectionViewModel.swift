@@ -10,6 +10,19 @@ class StationSelectionViewModel: ObservableObject {
     
     init() {
         loadHistory()
+        
+        // 設定画面からの履歴クリア通知を監視
+        NotificationCenter.default.addObserver(
+            forName: .searchHistoryCleared,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.searchHistory = []
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     func saveStationPair(_ stationPair: StationPair) {

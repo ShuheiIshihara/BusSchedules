@@ -1,10 +1,16 @@
 import SwiftUI
 
+// 通知名の拡張
+extension Notification.Name {
+    static let searchHistoryCleared = Notification.Name("searchHistoryCleared")
+}
+
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingPrivacyPolicy = false
     @State private var showingTermsOfService = false
     @State private var showingAbout = false
+    @State private var showingClearHistoryAlert = false
     
     var body: some View {
         NavigationView {
@@ -77,7 +83,7 @@ struct SettingsView: View {
                         title: "検索履歴をクリア",
                         showChevron: true
                     ) {
-                        clearSearchHistory()
+                        showingClearHistoryAlert = true
                     }
                 }
             }
@@ -100,6 +106,14 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingAbout) {
             AboutView()
+        }
+        .alert("検索履歴をクリア", isPresented: $showingClearHistoryAlert) {
+            Button("キャンセル", role: .cancel) { }
+            Button("クリア", role: .destructive) {
+                clearSearchHistory()
+            }
+        } message: {
+            Text("検索履歴を削除しますか？この操作は取り消すことができません。")
         }
     }
     
@@ -126,9 +140,12 @@ struct SettingsView: View {
     }
     
     private func clearSearchHistory() {
-        // 検索履歴をクリアする処理
+        // 検索履歴をクリアする処理（検索画面と同じキーを使用）
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: "searchHistory")
+        defaults.removeObject(forKey: "StationPairHistory")
+        
+        // 通知を送信して他の画面に変更を知らせる
+        NotificationCenter.default.post(name: .searchHistoryCleared, object: nil)
     }
 }
 
