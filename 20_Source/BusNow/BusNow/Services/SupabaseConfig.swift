@@ -30,7 +30,9 @@ struct SupabaseConfig {
     
     private static func readConfigValue(for key: String) -> String {
         guard let configPath = Bundle.main.path(forResource: "Config-Local", ofType: "xcconfig") else {
+            #if DEBUG
             print("SupabaseConfig: Config-Local.xcconfig not found in bundle")
+            #endif
             return ""
         }
         
@@ -46,7 +48,9 @@ struct SupabaseConfig {
                 }
             }
         } catch {
+            #if DEBUG
             print("SupabaseConfig: Error reading config file - \(error)")
+            #endif
         }
         
         return ""
@@ -81,6 +85,7 @@ struct SupabaseConfig {
     }
     
     static func printDebugInfo() {
+        #if DEBUG
         print("=== Supabase Configuration Debug ===")
         print("Bundle Path: \(Bundle.main.bundlePath)")
         
@@ -129,5 +134,6 @@ struct SupabaseConfig {
         print("  Is Configured: \(isConfigured)")
         print("  Status: \(configurationStatus)")
         print("=====================================")
+        #endif
     }
 }

@@ -12,12 +12,16 @@ class SupabaseService: ObservableObject {
     
     private func initializeClient() {
         guard SupabaseConfig.isConfigured else {
+            #if DEBUG
             print("SupabaseService: Configuration incomplete - \(SupabaseConfig.configurationStatus)")
+            #endif
             return
         }
         
         guard let url = URL(string: SupabaseConfig.supabaseUrl) else {
+            #if DEBUG
             print("SupabaseService: Invalid Supabase URL")
+            #endif
             return
         }
         
@@ -26,23 +30,31 @@ class SupabaseService: ObservableObject {
             supabaseKey: SupabaseConfig.supabaseAnonKey
         )
         
+        #if DEBUG
         print("SupabaseService: Client initialized successfully")
+        #endif
     }
     
     func testConnection() async -> Bool {
         guard let client = self.client else {
+            #if DEBUG
             print("SupabaseService: Client not initialized")
+            #endif
             return false
         }
         
         do {
             // 匿名アクセス用の接続テスト: RPC関数を使用してデータベース接続を確認
             let result = try client.rpc("phase1_health_check")
+            #if DEBUG
             print("SupabaseService: Database connection test successful")
             print("SupabaseService: Health check result: \(result)")
+            #endif
             return true
         } catch {
+            #if DEBUG
             print("SupabaseService: Database connection test failed - \(error.localizedDescription)")
+            #endif
             
             // フォールバック: 基本的なRESTエンドポイント確認
             do {
@@ -51,10 +63,14 @@ class SupabaseService: ObservableObject {
                     .select("phase_name")
                     .limit(1)
                     .execute()
+                #if DEBUG
                 print("SupabaseService: Basic REST connection successful")
+                #endif
                 return true
             } catch {
+                #if DEBUG
                 print("SupabaseService: Basic REST connection also failed - \(error.localizedDescription)")
+                #endif
                 return false
             }
         }
@@ -69,7 +85,9 @@ class SupabaseService: ObservableObject {
         
         for attempt in 0..<retryCount {
             do {
+                #if DEBUG
                 print("SupabaseService: Attempt \(attempt + 1) of \(retryCount)")
+                #endif
                 
                 // DateFormatter for SQL date format
                 let dateFormatter = DateFormatter()
@@ -90,19 +108,24 @@ class SupabaseService: ObservableObject {
                 let data = response.data
                 
                 // レスポンスデータの詳細ログ
+                #if DEBUG
                 print("SupabaseService: RPC response details:")
                 print("  - Status code: \(response.status)")
                 print("  - Data size: \(data.count) bytes")
+                #endif
                 
                 // データが空の場合の早期チェック
                 if data.isEmpty {
+                    #if DEBUG
                     print("SupabaseService: Empty response data received")
+                    #endif
                     throw SupabaseError.emptyResponse
                 }
                 
                 // レスポンス内容をログ出力（デバッグ用）
                 if let dataString = String(data: data, encoding: .utf8) {
                     // レスポンスの最初の部分のみ表示（長すぎる場合は切り詰める）
+                    #if DEBUG
                     let preview = dataString.count > 500 ? String(dataString.prefix(500)) + "..." : dataString
                     print("SupabaseService: Response data preview: \(preview)")
                     
@@ -114,28 +137,36 @@ class SupabaseService: ObservableObject {
                     } else {
                         print("SupabaseService: Unknown key format in response")
                     }
+                    #endif
                     
                     // 空配列や空文字列チェック
                     let trimmed = dataString.trimmingCharacters(in: .whitespacesAndNewlines)
                     if trimmed == "null" || trimmed == "[]" || trimmed == "{}" || trimmed.isEmpty {
+                        #if DEBUG
                         print("SupabaseService: Response contains no actual data (null/empty)")
+                        #endif
                         return [] // 空配列を返す
                     }
                 } else {
+                    #if DEBUG
                     print("SupabaseService: Response data is not valid UTF-8")
+                    #endif
                     throw SupabaseError.invalidResponse
                 }
                 
                 do {
                     // JSON を BusScheduleRPCResponse 配列にデコード
                     let rpcResponses = try JSONDecoder().decode([BusScheduleRPCResponse].self, from: data)
+                    #if DEBUG
                     print("SupabaseService: Successfully decoded \(rpcResponses.count) schedules on attempt \(attempt + 1)")
+                    #endif
                     
                     // BusScheduleData 配列に変換
                     let schedules = rpcResponses.map { BusScheduleData(from: $0) }
                     return schedules
                     
                 } catch {
+                    #if DEBUG
                     print("SupabaseService: JSON parsing failed - \(error.localizedDescription)")
                     print("SupabaseService: JSON parsing detailed error: \(error)")
                     
@@ -143,18 +174,23 @@ class SupabaseService: ObservableObject {
                     if let decodingError = error as? DecodingError {
                         print("SupabaseService: Decoding error details: \(decodingError)")
                     }
+                    #endif
                     
                     throw SupabaseError.jsonParsingFailed(error.localizedDescription)
                 }
                 
             } catch let error {
                 lastError = error
+                #if DEBUG
                 print("SupabaseService: Attempt \(attempt + 1) failed: \(error.localizedDescription)")
+                #endif
                 
                 // 最後の試行でない場合は少し待機してリトライ
                 if attempt < retryCount - 1 {
                     let delay = Double(attempt + 1) * 1.0
+                    #if DEBUG
                     print("SupabaseService: Retrying in \(delay) seconds...")
+                    #endif
                     try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                 }
             }
@@ -162,7 +198,9 @@ class SupabaseService: ObservableObject {
         
         // すべての試行が失敗した場合
         if let lastError = lastError {
+            #if DEBUG
             print("SupabaseService: All \(retryCount) attempts failed")
+            #endif
             
             if let supabaseError = lastError as? SupabaseError {
                 throw supabaseError
@@ -184,7 +222,9 @@ class SupabaseService: ObservableObject {
     }
     
     func getRouteSettings() async throws -> [RouteSettingData] {
+        #if DEBUG
         print("SupabaseService: getRouteSettings placeholder - SDK integration required")
+        #endif
         throw SupabaseError.notImplemented
     }
     
