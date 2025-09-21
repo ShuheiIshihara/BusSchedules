@@ -126,15 +126,15 @@ struct SettingsView: View {
     }
     
     private func openAppStoreURL() {
-        // App Store URL（実際のアプリIDに置き換える必要があります）
-        if let url = URL(string: "https://apps.apple.com/jp/app/id-placeholder") {
+        // App Store URL
+        if let url = URL(string: "https://apps.apple.com/jp/app/id6751941954") {
             UIApplication.shared.open(url)
         }
     }
     
     private func openAppStoreReviewURL() {
-        // App Store レビューURL（実際のアプリIDに置き換える必要があります）
-        if let url = URL(string: "https://apps.apple.com/jp/app/id-placeholder?action=write-review") {
+        // App Store レビューURL
+        if let url = URL(string: "https://apps.apple.com/jp/app/id6751941954?action=write-review") {
             UIApplication.shared.open(url)
         }
     }
