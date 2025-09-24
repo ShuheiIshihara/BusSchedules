@@ -5,6 +5,15 @@ struct FontDisplayDebugView: View {
     @State private var showFontList = false
     @State private var availableFonts: [String] = []
     @State private var selectedFontName = "YuGothic-Medium"
+
+    // スクリーンショット用時間制御
+    @State private var selectedHour = 7
+    @State private var selectedMinute = 45
+    private let scheduleViewModel: BusScheduleViewModel?
+
+    init(scheduleViewModel: BusScheduleViewModel? = nil) {
+        self.scheduleViewModel = scheduleViewModel
+    }
     
     private let testCharacters = [
         "辻", // U+8FBB - standard tsuji
@@ -30,13 +39,17 @@ struct FontDisplayDebugView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     headerSection
-                    
+
+                    if scheduleViewModel != nil {
+                        timeControlSection
+                    }
+
                     characterTestSection
-                    
+
                     fontComparisonSection
-                    
+
                     normalizedTextSection
-                    
+
                     systemInfoSection
                 }
                 .padding()
@@ -48,7 +61,54 @@ struct FontDisplayDebugView: View {
             }
         }
     }
-    
+
+    private var timeControlSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("スクリーンショット用時間設定")
+                .font(.headline)
+                .fontWeight(.semibold)
+
+            if let viewModel = scheduleViewModel {
+                VStack(spacing: 12) {
+                    HStack(spacing: 12) {
+                        Button("朝ラッシュ (7:45)") {
+                            viewModel.enableDebugMode()
+                            viewModel.setDebugTimeToMorningRush()
+                        }
+                        .font(.body)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+
+                        Button("夕ラッシュ (18:30)") {
+                            viewModel.enableDebugMode()
+                            viewModel.setDebugTimeToEveningRush()
+                        }
+                        .font(.body)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.orange)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                    }
+
+                    Button("リアルタイムに戻す") {
+                        viewModel.disableDebugMode()
+                    }
+                    .font(.body)
+                    .foregroundColor(.red)
+                    .padding(.vertical, 8)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 12)
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(8)
+            }
+        }
+    }
+
     private var headerSection: some View {
         VStack(spacing: 12) {
             Text("辻文字（1点しんにょう）表示テスト")

@@ -204,7 +204,7 @@ struct StationSelectionView: View {
             Text("検索履歴を削除しますか？この操作は取り消すことができません。")
         }
         .sheet(isPresented: $showingSettings) {
-                    SettingsView()
+                    SettingsView(scheduleViewModel: nil)
         }
     }
     

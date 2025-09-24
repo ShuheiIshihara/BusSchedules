@@ -11,6 +11,14 @@ struct SettingsView: View {
     @State private var showingTermsOfService = false
     @State private var showingAbout = false
     @State private var showingClearHistoryAlert = false
+    @State private var showingDebugView = false
+
+    // デバッグ機能で使用するViewModelを受け取る
+    let scheduleViewModel: BusScheduleViewModel?
+
+    init(scheduleViewModel: BusScheduleViewModel? = nil) {
+        self.scheduleViewModel = scheduleViewModel
+    }
     
     var body: some View {
         NavigationView {
@@ -86,6 +94,23 @@ struct SettingsView: View {
                         showingClearHistoryAlert = true
                     }
                 }
+
+                // デバッグセクション (Debug buildでのみ表示)
+                #if DEBUG
+                Section(
+                    header: Text("開発者ツール"),
+                    footer: Text("App Store用スクリーンショット撮影のための時間制御機能")
+                ) {
+                    SettingsRowView(
+                        icon: "camera",
+                        title: "スクリーンショット用設定",
+                        value: scheduleViewModel != nil ? "時間制御" : "利用不可",
+                        showChevron: true
+                    ) {
+                        showingDebugView = true
+                    }
+                }
+                #endif
             }
             .navigationTitle("設定")
             .navigationBarTitleDisplayMode(.large)
@@ -106,6 +131,9 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingAbout) {
             AboutView()
+        }
+        .sheet(isPresented: $showingDebugView) {
+            ScreenshotDebugView(scheduleViewModel: scheduleViewModel)
         }
         .alert("検索履歴をクリア", isPresented: $showingClearHistoryAlert) {
             Button("キャンセル", role: .cancel) { }
@@ -202,5 +230,5 @@ struct SettingsRowView: View {
 }
 
 #Preview {
-    SettingsView()
+    SettingsView(scheduleViewModel: nil)
 }

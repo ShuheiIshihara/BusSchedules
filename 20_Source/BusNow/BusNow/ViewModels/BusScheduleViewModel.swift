@@ -12,7 +12,11 @@ class BusScheduleViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var nextBusIndex: Int? = nil
     @Published var targetDate: Date = Date()
-    
+
+    // デバッグ用時間制御
+    @Published var isDebugModeEnabled: Bool = false
+    @Published var debugTime: Date = Date()
+
     private let originalStationPair: StationPair
     private var currentStationPair: StationPair
     private var timer: Timer?
@@ -59,7 +63,11 @@ class BusScheduleViewModel: ObservableObject {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.currentTime = Date()
+                if self.isDebugModeEnabled {
+                    self.currentTime = self.debugTime
+                } else {
+                    self.currentTime = Date()
+                }
                 self.updateNextBusIndex() // 時間経過に伴う次のバス更新
             }
         }
@@ -113,6 +121,12 @@ class BusScheduleViewModel: ObservableObject {
                 // 土日祝に平日ボタン -> 次の月曜日
                 targetDate = getNextMonday(from: today)
             }
+            
+//            // DEBUGモード限定で日付を平日固定にする
+//            if isDebugModeEnabled {
+//                let calendar = Calendar(identifier: .gregorian)
+//                targetDate = calendar.date(from: DateComponents(year: 2025, month: 9, day: 22)) ?? today
+//            }
         case .holiday:
             if isTodayWeekday {
                 // 平日に土日祝ボタン -> 次の土曜日
@@ -291,5 +305,50 @@ class BusScheduleViewModel: ObservableObject {
         let daysUntilMonday = weekday == 1 ? 1 : (9 - weekday) // Sunday: 1 day, other: 9-weekday
         
         return calendar.date(byAdding: .day, value: daysUntilMonday, to: date) ?? date
+    }
+
+    // MARK: - Debug Functions
+    func enableDebugMode() {
+        isDebugModeEnabled = true
+        debugTime = currentTime
+    }
+
+    func disableDebugMode() {
+        isDebugModeEnabled = false
+        currentTime = Date()
+    }
+
+    func setDebugTime(_ time: Date) {
+        debugTime = time
+        if isDebugModeEnabled {
+            currentTime = time
+            updateNextBusIndex()
+        }
+    }
+
+    func setDebugTimeToMorningRush() {
+        let calendar = Calendar.current
+        let components = DateComponents(hour: 8, minute: 1, second: 0)
+        if calendar.date(from: components) != nil {
+            // 今日の日付に設定時刻を合成
+            var todayComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+            todayComponents.hour = 8
+            todayComponents.minute = 1
+            todayComponents.second = 0
+            if let adjustedTime = calendar.date(from: todayComponents) {
+                setDebugTime(adjustedTime)
+            }
+        }
+    }
+
+    func setDebugTimeToEveningRush() {
+        let calendar = Calendar.current
+        var todayComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        todayComponents.hour = 18
+        todayComponents.minute = 30
+        todayComponents.second = 0
+        if let eveningTime = calendar.date(from: todayComponents) {
+            setDebugTime(eveningTime)
+        }
     }
 }

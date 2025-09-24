@@ -40,7 +40,7 @@ struct BusScheduleView: View {
             )
         }
         .sheet(isPresented: $showingSettings) {
-            SettingsView()
+            SettingsView(scheduleViewModel: viewModel)
         }
     }
     
