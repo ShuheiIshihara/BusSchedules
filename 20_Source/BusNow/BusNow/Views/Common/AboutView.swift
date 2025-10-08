@@ -94,13 +94,15 @@ struct AboutView: View {
                 title: "データについて",
                 content: """
                 本アプリは GTFS-JP 形式のバス時刻表データを使用しています。
-                
+
                 • データは定期的に更新されます
                 • 運行遅延や運休情報は反映されません
                 • 実際の運行状況は公式情報をご確認ください
                 """
             )
-            
+
+            attributionSection
+
             aboutSection(
                 title: "免責事項",
                 content: """
@@ -136,7 +138,37 @@ struct AboutView: View {
             .padding(.top, 20)
         }
     }
-    
+
+    private var attributionSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("オープンデータの出典")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("[市バスGTFS-JPデータ]")
+                    .font(.body)
+                    .foregroundColor(.primary)
+
+                Text("名古屋市")
+                    .font(.body)
+                    .foregroundColor(.primary)
+
+                Text("クリエイティブ・コモンズ・ライセンス 表示4.0 国際")
+                    .font(.body)
+                    .foregroundColor(.primary)
+
+                Link("https://creativecommons.org/licenses/by/4.0/deed.ja",
+                     destination: URL(string: "https://creativecommons.org/licenses/by/4.0/deed.ja")!)
+                    .font(.body)
+                    .foregroundColor(.blue)
+            }
+            .lineSpacing(4)
+        }
+        .padding(.vertical, 8)
+    }
+
     private func aboutSection(title: String, content: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
