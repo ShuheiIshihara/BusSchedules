@@ -23,7 +23,7 @@ struct AboutView: View {
                     Button("閉じる") {
                         dismiss()
                     }
-                    .foregroundColor(.blue)
+                    .foregroundStyle(.blue)
                 }
             }
         }
@@ -45,7 +45,7 @@ struct AboutView: View {
                     .overlay(
                         Image(systemName: "bus.fill")
                             .font(.system(size: 40))
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)
                     )
             }
             
@@ -56,11 +56,11 @@ struct AboutView: View {
                 
                 Text("名古屋市バス時刻表アプリ")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 
                 Text("Version \(getAppVersion())")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -94,13 +94,15 @@ struct AboutView: View {
                 title: "データについて",
                 content: """
                 本アプリは GTFS-JP 形式のバス時刻表データを使用しています。
-                
+
                 • データは定期的に更新されます
                 • 運行遅延や運休情報は反映されません
                 • 実際の運行状況は公式情報をご確認ください
                 """
             )
-            
+
+            attributionSection
+
             aboutSection(
                 title: "免責事項",
                 content: """
@@ -125,28 +127,58 @@ struct AboutView: View {
             VStack(spacing: 8) {
                 Text("© 2024 ばすみる開発チーム")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 
                 Text("名古屋市バスの快適な利用をサポートします")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 20)
         }
     }
-    
+
+    private var attributionSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("オープンデータの出典")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("[市バスGTFS-JPデータ]")
+                    .font(.body)
+                    .foregroundStyle(.primary)
+
+                Text("名古屋市")
+                    .font(.body)
+                    .foregroundStyle(.primary)
+
+                Text("クリエイティブ・コモンズ・ライセンス 表示4.0 国際")
+                    .font(.body)
+                    .foregroundStyle(.primary)
+
+                Link("https://creativecommons.org/licenses/by/4.0/deed.ja",
+                     destination: URL(string: "https://creativecommons.org/licenses/by/4.0/deed.ja")!)
+                    .font(.body)
+                    .tint(.blue)
+            }
+            .lineSpacing(4)
+        }
+        .padding(.vertical, 8)
+    }
+
     private func aboutSection(title: String, content: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.headline)
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
             
             Text(content)
                 .font(.body)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
                 .lineSpacing(4)
         }
         .padding(.vertical, 8)
