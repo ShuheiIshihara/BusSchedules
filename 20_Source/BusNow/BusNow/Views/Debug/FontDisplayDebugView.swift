@@ -1,3 +1,4 @@
+#if DEBUG
 import SwiftUI
 
 struct FontDisplayDebugView: View {
@@ -284,3 +285,4 @@ struct FontDisplayDebugView: View {
 #Preview {
     FontDisplayDebugView()
 }
+#endif

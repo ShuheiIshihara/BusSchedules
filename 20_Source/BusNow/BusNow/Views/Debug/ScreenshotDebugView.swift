@@ -1,3 +1,4 @@
+#if DEBUG
 import SwiftUI
 
 struct ScreenshotDebugView: View {
@@ -87,3 +88,4 @@ struct ScreenshotDebugView: View {
 #Preview {
     ScreenshotDebugView(scheduleViewModel: nil)
 }
+#endif

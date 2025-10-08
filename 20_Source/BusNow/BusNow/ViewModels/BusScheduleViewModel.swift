@@ -13,9 +13,11 @@ class BusScheduleViewModel: ObservableObject {
     @Published var nextBusIndex: Int? = nil
     @Published var targetDate: Date = Date()
 
+    #if DEBUG
     // デバッグ用時間制御
     @Published var isDebugModeEnabled: Bool = false
     @Published var debugTime: Date = Date()
+    #endif
 
     private let originalStationPair: StationPair
     private var currentStationPair: StationPair
@@ -63,11 +65,15 @@ class BusScheduleViewModel: ObservableObject {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
+                #if DEBUG
                 if self.isDebugModeEnabled {
                     self.currentTime = self.debugTime
                 } else {
                     self.currentTime = Date()
                 }
+                #else
+                self.currentTime = Date()
+                #endif
                 self.updateNextBusIndex() // 時間経過に伴う次のバス更新
             }
         }
@@ -121,12 +127,6 @@ class BusScheduleViewModel: ObservableObject {
                 // 土日祝に平日ボタン -> 次の月曜日
                 targetDate = getNextMonday(from: today)
             }
-            
-//            // DEBUGモード限定で日付を平日固定にする
-//            if isDebugModeEnabled {
-//                let calendar = Calendar(identifier: .gregorian)
-//                targetDate = calendar.date(from: DateComponents(year: 2025, month: 9, day: 22)) ?? today
-//            }
         case .holiday:
             if isTodayWeekday {
                 // 平日に土日祝ボタン -> 次の土曜日
@@ -307,6 +307,7 @@ class BusScheduleViewModel: ObservableObject {
         return calendar.date(byAdding: .day, value: daysUntilMonday, to: date) ?? date
     }
 
+    #if DEBUG
     // MARK: - Debug Functions
     func enableDebugMode() {
         isDebugModeEnabled = true
@@ -351,4 +352,5 @@ class BusScheduleViewModel: ObservableObject {
             setDebugTime(eveningTime)
         }
     }
+    #endif
 }
