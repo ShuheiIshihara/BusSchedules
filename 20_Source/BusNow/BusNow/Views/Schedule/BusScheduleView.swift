@@ -4,6 +4,7 @@ struct BusScheduleView: View {
     @StateObject private var viewModel: BusScheduleViewModel
     let onBack: () -> Void
     @State private var showingProximityInfo = false
+    @State private var showingSettings = false
     
     init(stationPair: StationPair, onBack: @escaping () -> Void) {
         self._viewModel = StateObject(wrappedValue: BusScheduleViewModel(stationPair: stationPair))
@@ -38,6 +39,9 @@ struct BusScheduleView: View {
                 arrivalStation: viewModel.stationPair.arrivalStation
             )
         }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView(scheduleViewModel: viewModel)
+        }
     }
     
     private var headerSection: some View {
@@ -55,16 +59,26 @@ struct BusScheduleView: View {
                 
                 Spacer()
                 
-                Button(action: {
-                    showingProximityInfo = true
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "bus.fill")
-                            .font(.body)
-                        Text("接近情報")
-                            .font(.caption)
+                HStack(spacing: 12) {
+                    Button(action: {
+                        showingProximityInfo = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bus.fill")
+                                .font(.body)
+                            Text("接近情報")
+                                .font(.caption)
+                        }
+                        .foregroundColor(.blue)
                     }
-                    .foregroundColor(.blue)
+                    
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Image(systemName: "gearshape")
+                            .font(.body)
+                            .foregroundColor(.blue)
+                    }
                 }
             }
             .padding(.horizontal, 20)
@@ -195,7 +209,7 @@ struct BusScheduleView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(Array(viewModel.busSchedules.enumerated()), id: \.element.departureTime) { index, schedule in
+                    ForEach(Array(viewModel.busSchedules.enumerated()), id: \.offset) { index, schedule in
                         BusScheduleRowView(
                             schedule: schedule,
                             isPastTime: viewModel.isPastTime(schedule.departureTime),
@@ -203,8 +217,8 @@ struct BusScheduleView: View {
                             minutesUntil: viewModel.nextBusIndex == index ? viewModel.minutesUntilNextBus() : nil,
                             currentTime: viewModel.currentTime
                         )
-                        .id("schedule_\(index)") // 固定IDに変更してView再生成を防ぐ
-                        
+                        .id("schedule_\(index)")
+
                         if index < viewModel.busSchedules.count - 1 {
                             Divider()
                                 .padding(.leading, 20)
@@ -227,8 +241,8 @@ struct BusScheduleView: View {
             .onAppear {
                 // 初回表示時に次のバスにスクロール
                 if let index = viewModel.nextBusIndex {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        withAnimation(.easeInOut(duration: 0.8)) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        withAnimation(.easeInOut(duration: 0.5)) {
                             proxy.scrollTo("schedule_\(index)", anchor: .center)
                         }
                     }
@@ -402,7 +416,6 @@ struct BusScheduleRowView: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(isNextBus ? Color.blue : Color.clear, lineWidth: isNextBus ? 2 : 0)
         )
-        .padding(.horizontal, isNextBus ? 16 : 0)
     }
 }
 
@@ -450,7 +463,7 @@ struct BusStopsView: View {
 
 #Preview {
     NavigationView {
-        BusScheduleView(stationPair: StationPair(departure: "名古屋駅", arrival: "ささしまライブ")) {
+        BusScheduleView(stationPair: StationPair(departure: "ささしまライブ", arrival: "名古屋駅")) {
             // Preview用の空のコールバック
         }
     }

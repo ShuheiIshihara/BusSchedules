@@ -5,17 +5,29 @@ struct StationSelectionView: View {
     @State private var departureStation = ""
     @State private var arrivalStation = ""
     @State private var showingClearAlert = false
-    
+    @State private var showingSettings = false
+
     var onStationsPaired: (StationPair) -> Void
     
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 // Header
+                Button(action: {
+                    showingSettings = true
+                }) {
+                    Image(systemName: "gearshape")
+                        .font(.body)
+                        .foregroundColor(.blue)
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.top, 40)
+                .padding(.horizontal, 20)
+                
                 Text("バス停を入力")
                     .font(.title2)
                     .fontWeight(.semibold)
-                    .padding(.top, 60)
+                    .padding(.top, 20)
                     .padding(.bottom, 40)
                 
                 // Station Input Section
@@ -190,6 +202,9 @@ struct StationSelectionView: View {
             }
         } message: {
             Text("検索履歴を削除しますか？この操作は取り消すことができません。")
+        }
+        .sheet(isPresented: $showingSettings) {
+                    SettingsView(scheduleViewModel: nil)
         }
     }
     
