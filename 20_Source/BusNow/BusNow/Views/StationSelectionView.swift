@@ -6,6 +6,8 @@ struct StationSelectionView: View {
     @State private var arrivalStation = ""
     @State private var showingClearAlert = false
     @State private var showingSettings = false
+    @State private var isDepartureFieldFocused = false
+    @State private var isArrivalFieldFocused = false
 
     var onStationsPaired: (StationPair) -> Void
     
@@ -37,24 +39,72 @@ struct StationSelectionView: View {
                         Text("出発バス停")
                             .font(.body)
                             .foregroundColor(.primary)
-                        
-                        HStack {
-                            Image(systemName: "location.fill")
-                                .foregroundColor(.gray)
-                                .frame(width: 20)
-                            
-                            TextField("野並", text: $departureStation)
-                                .textFieldStyle(PlainTextFieldStyle())
-                                .tint(.blue)
+
+                        VStack(spacing: 0) {
+                            HStack {
+                                Image(systemName: "location.fill")
+                                    .foregroundColor(.gray)
+                                    .frame(width: 20)
+
+                                TextField("野並", text: $departureStation)
+                                    .textFieldStyle(PlainTextFieldStyle())
+                                    .tint(.blue)
+                                    .onChange(of: departureStation) { newValue in
+                                        viewModel.searchDepartureStations(query: newValue)
+                                    }
+                                    .onTapGesture {
+                                        isDepartureFieldFocused = true
+                                        isArrivalFieldFocused = false
+                                        if !departureStation.isEmpty {
+                                            viewModel.searchDepartureStations(query: departureStation)
+                                        }
+                                    }
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color(.systemGray5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color(.separator), lineWidth: 0.5)
+                            )
+                            .cornerRadius(8)
+
+                            // Departure Suggestions List
+                            if isDepartureFieldFocused && !viewModel.departureSuggestions.isEmpty {
+                                VStack(spacing: 0) {
+                                    ForEach(viewModel.departureSuggestions) { busStop in
+                                        Button(action: {
+                                            departureStation = busStop.stopName
+                                            viewModel.clearDepartureSuggestions()
+                                            isDepartureFieldFocused = false
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "mappin.circle.fill")
+                                                    .foregroundColor(.blue)
+                                                    .font(.caption)
+                                                Text(busStop.stopName.normalizedForDisplay())
+                                                    .foregroundColor(.primary)
+                                                    .font(.body)
+                                                Spacer()
+                                            }
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 10)
+                                            .background(Color(.systemBackground))
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+
+                                        if busStop.id != viewModel.departureSuggestions.last?.id {
+                                            Divider()
+                                                .padding(.leading, 16)
+                                        }
+                                    }
+                                }
+                                .background(Color(.systemBackground))
+                                .cornerRadius(8)
+                                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                .padding(.top, 4)
+                            }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(Color(.systemGray5))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color(.separator), lineWidth: 0.5)
-                        )
-                        .cornerRadius(8)
                     }
                     
                     // Station Swap Button
@@ -81,30 +131,84 @@ struct StationSelectionView: View {
                         Text("到着バス停")
                             .font(.body)
                             .foregroundColor(.primary)
-                        
-                        HStack {
-                            Image(systemName: "location.fill")
-                                .foregroundColor(.gray)
-                                .frame(width: 20)
-                            
-                            TextField("緑車庫", text: $arrivalStation)
-                                .textFieldStyle(PlainTextFieldStyle())
-                                .tint(.blue)
+
+                        VStack(spacing: 0) {
+                            HStack {
+                                Image(systemName: "location.fill")
+                                    .foregroundColor(.gray)
+                                    .frame(width: 20)
+
+                                TextField("緑車庫", text: $arrivalStation)
+                                    .textFieldStyle(PlainTextFieldStyle())
+                                    .tint(.blue)
+                                    .onChange(of: arrivalStation) { newValue in
+                                        viewModel.searchArrivalStations(query: newValue)
+                                    }
+                                    .onTapGesture {
+                                        isArrivalFieldFocused = true
+                                        isDepartureFieldFocused = false
+                                        if !arrivalStation.isEmpty {
+                                            viewModel.searchArrivalStations(query: arrivalStation)
+                                        }
+                                    }
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color(.systemGray5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color(.separator), lineWidth: 0.5)
+                            )
+                            .cornerRadius(8)
+
+                            // Arrival Suggestions List
+                            if isArrivalFieldFocused && !viewModel.arrivalSuggestions.isEmpty {
+                                VStack(spacing: 0) {
+                                    ForEach(viewModel.arrivalSuggestions) { busStop in
+                                        Button(action: {
+                                            arrivalStation = busStop.stopName
+                                            viewModel.clearArrivalSuggestions()
+                                            isArrivalFieldFocused = false
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "mappin.circle.fill")
+                                                    .foregroundColor(.blue)
+                                                    .font(.caption)
+                                                Text(busStop.stopName.normalizedForDisplay())
+                                                    .foregroundColor(.primary)
+                                                    .font(.body)
+                                                Spacer()
+                                            }
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 10)
+                                            .background(Color(.systemBackground))
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+
+                                        if busStop.id != viewModel.arrivalSuggestions.last?.id {
+                                            Divider()
+                                                .padding(.leading, 16)
+                                        }
+                                    }
+                                }
+                                .background(Color(.systemBackground))
+                                .cornerRadius(8)
+                                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                .padding(.top, 4)
+                            }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(Color(.systemGray5))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color(.separator), lineWidth: 0.5)
-                        )
-                        .cornerRadius(8)
                     }
                 }
                 .padding(.horizontal, 20)
                 
                 // Search Button
                 Button(action: {
+                    // 候補リストを閉じる
+                    isDepartureFieldFocused = false
+                    isArrivalFieldFocused = false
+                    viewModel.clearDepartureSuggestions()
+                    viewModel.clearArrivalSuggestions()
+
                     let stationPair = StationPair(departure: departureStation, arrival: arrivalStation)
                     viewModel.saveStationPair(stationPair)
                     onStationsPaired(stationPair)
@@ -192,6 +296,11 @@ struct StationSelectionView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
+        .onTapGesture {
+            // 他の場所をタップしたら候補リストを閉じる
+            isDepartureFieldFocused = false
+            isArrivalFieldFocused = false
+        }
         .onAppear {
             loadSavedStations()
         }

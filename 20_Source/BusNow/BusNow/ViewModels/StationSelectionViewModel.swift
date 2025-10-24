@@ -5,12 +5,20 @@ class StationSelectionViewModel: ObservableObject {
     private let stationPairKey = "SavedStationPair"
     private let historyKey = "StationPairHistory"
     private let maxHistoryCount = 10
-    
+    private let supabaseService = SupabaseService.shared
+
     @Published var searchHistory: [StationPair] = []
-    
+    @Published var departureSuggestions: [BusStop] = []
+    @Published var arrivalSuggestions: [BusStop] = []
+    @Published var isSearchingDeparture = false
+    @Published var isSearchingArrival = false
+
+    private var departureSearchTask: Task<Void, Never>?
+    private var arrivalSearchTask: Task<Void, Never>?
+
     init() {
         loadHistory()
-        
+
         // 設定画面からの履歴クリア通知を監視
         NotificationCenter.default.addObserver(
             forName: .searchHistoryCleared,
@@ -20,7 +28,7 @@ class StationSelectionViewModel: ObservableObject {
             self?.searchHistory = []
         }
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
@@ -98,5 +106,91 @@ class StationSelectionViewModel: ObservableObject {
         let temp = departureStation
         departureStation = arrivalStation
         arrivalStation = temp
+    }
+
+    // MARK: - Autocomplete Methods
+
+    @MainActor
+    func searchDepartureStations(query: String) {
+        // 既存の検索タスクをキャンセル
+        departureSearchTask?.cancel()
+
+        guard !query.isEmpty else {
+            departureSuggestions = []
+            return
+        }
+
+        // デバウンス: 300ms待機してから検索実行
+        departureSearchTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000) // 300ms
+
+            guard !Task.isCancelled else { return }
+
+            isSearchingDeparture = true
+
+            do {
+                let results = try await supabaseService.searchBusStops(query: query)
+                if !Task.isCancelled {
+                    departureSuggestions = results
+                }
+            } catch {
+                #if DEBUG
+                print("StationSelectionViewModel: Departure station search failed - \(error.localizedDescription)")
+                #endif
+                if !Task.isCancelled {
+                    departureSuggestions = []
+                }
+            }
+
+            if !Task.isCancelled {
+                isSearchingDeparture = false
+            }
+        }
+    }
+
+    @MainActor
+    func searchArrivalStations(query: String) {
+        // 既存の検索タスクをキャンセル
+        arrivalSearchTask?.cancel()
+
+        guard !query.isEmpty else {
+            arrivalSuggestions = []
+            return
+        }
+
+        // デバウンス: 300ms待機してから検索実行
+        arrivalSearchTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000) // 300ms
+
+            guard !Task.isCancelled else { return }
+
+            isSearchingArrival = true
+
+            do {
+                let results = try await supabaseService.searchBusStops(query: query)
+                if !Task.isCancelled {
+                    arrivalSuggestions = results
+                }
+            } catch {
+                #if DEBUG
+                print("StationSelectionViewModel: Arrival station search failed - \(error.localizedDescription)")
+                #endif
+                if !Task.isCancelled {
+                    arrivalSuggestions = []
+                }
+            }
+
+            if !Task.isCancelled {
+                isSearchingArrival = false
+            }
+        }
+    }
+
+    func clearDepartureSuggestions() {
+        departureSuggestions = []
+    }
+
+    func clearArrivalSuggestions() {
+        arrivalSuggestions = []
     }
 }

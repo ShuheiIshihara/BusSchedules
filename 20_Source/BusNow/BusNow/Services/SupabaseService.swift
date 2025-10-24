@@ -232,6 +232,58 @@ class SupabaseService: ObservableObject {
         print("SupabaseService: getHolidays placeholder - SDK integration required")
         throw SupabaseError.notImplemented
     }
+
+    func searchBusStops(query: String) async throws -> [BusStop] {
+        guard let client = self.client else {
+            throw SupabaseError.connectionFailed
+        }
+
+        // 空のクエリの場合は空配列を返す
+        guard !query.isEmpty else {
+            return []
+        }
+
+        // クエリを検索用に正規化
+        let normalizedQuery = query.normalizedForSearch()
+
+        #if DEBUG
+        print("SupabaseService: Searching bus stops with query: \(normalizedQuery)")
+        #endif
+
+        do {
+            // GTFS-JPのstopsテーブルから検索（部分一致）
+            let response = try await client
+                .from("stops")
+                .select("stop_id, stop_name")
+                .ilike("stop_name", "%\(normalizedQuery)%")
+                .limit(20)
+                .execute()
+
+            let data = response.data
+
+            #if DEBUG
+            print("SupabaseService: Bus stop search response size: \(data.count) bytes")
+            #endif
+
+            if data.isEmpty {
+                return []
+            }
+
+            let busStops = try JSONDecoder().decode([BusStop].self, from: data)
+
+            #if DEBUG
+            print("SupabaseService: Found \(busStops.count) matching bus stops")
+            #endif
+
+            return busStops
+
+        } catch {
+            #if DEBUG
+            print("SupabaseService: Bus stop search failed - \(error.localizedDescription)")
+            #endif
+            throw SupabaseError.connectionFailed
+        }
+    }
 }
 
 // MARK: - Data Models
