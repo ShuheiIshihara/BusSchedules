@@ -210,11 +210,12 @@
 				};
 			};
 			buildConfigurationList = 854B80142E5B65BF0076D591 /* Build configuration list for PBXProject "BusNow" */;
-			developmentRegion = en;
+			developmentRegion = ja;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				ja,
 			);
 			mainGroup = 854B80102E5B65BF0076D591;
 			minimizedProjectReferenceProxies = 1;

@@ -1,0 +1,12 @@
+/*
+  InfoPlist.strings
+  BusNow (Japanese)
+
+  Japanese localization for app metadata
+*/
+
+/* App Display Name */
+CFBundleDisplayName = "ばすみる";
+
+/* App Name */
+CFBundleName = "BusNow";
