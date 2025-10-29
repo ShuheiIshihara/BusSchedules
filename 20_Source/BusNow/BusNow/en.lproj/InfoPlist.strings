@@ -1,0 +1,12 @@
+/*
+  InfoPlist.strings
+  BusNow (English)
+
+  English localization for app metadata
+*/
+
+/* App Display Name */
+CFBundleDisplayName = "BusNow";
+
+/* App Name */
+CFBundleName = "BusNow";
