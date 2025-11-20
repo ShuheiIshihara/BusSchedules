@@ -22,6 +22,9 @@ struct BusScheduleView: View {
             // Current Time Display
             currentTimeSection
             
+            // Proximity Info Button
+            proximityInfoSection
+            
             // Bus Schedule List
             scheduleListSection
             
@@ -60,18 +63,6 @@ struct BusScheduleView: View {
                 Spacer()
                 
                 HStack(spacing: 12) {
-                    Button(action: {
-                        showingProximityInfo = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "bus.fill")
-                                .font(.body)
-                            Text("接近情報")
-                                .font(.caption)
-                        }
-                        .foregroundColor(.blue)
-                    }
-                    
                     Button(action: {
                         showingSettings = true
                     }) {
@@ -133,6 +124,29 @@ struct BusScheduleView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 8)
+    }
+    
+    private var proximityInfoSection: some View {
+        Button(action: {
+            showingProximityInfo = true
+        }) {
+            HStack {
+                Image(systemName: "bus.fill")
+                    .font(.headline)
+                Text("バス接近情報を見る")
+                    .font(.headline)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.subheadline)
+            }
+            .foregroundColor(.white)
+            .padding()
+            .background(Color.blue)
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 2)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
     }
     
     private var scheduleListSection: some View {
