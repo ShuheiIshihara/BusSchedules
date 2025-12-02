@@ -5,7 +5,8 @@ struct BusScheduleView: View {
     let onBack: () -> Void
     @State private var showingProximityInfo = false
     @State private var showingSettings = false
-    
+    @State private var showingDatePicker = false
+
     init(stationPair: StationPair, onBack: @escaping () -> Void) {
         self._viewModel = StateObject(wrappedValue: BusScheduleViewModel(stationPair: stationPair))
         self.onBack = onBack
@@ -21,6 +22,9 @@ struct BusScheduleView: View {
             
             // Current Time Display
             currentTimeSection
+            
+            // Proximity Info Button
+            proximityInfoSection
             
             // Bus Schedule List
             scheduleListSection
@@ -42,6 +46,18 @@ struct BusScheduleView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView(scheduleViewModel: viewModel)
         }
+        .sheet(isPresented: $showingDatePicker) {
+            DatePickerSheet(
+                selectedDate: viewModel.targetDate,
+                onDateSelected: { newDate in
+                    viewModel.setTargetDate(newDate)
+                    showingDatePicker = false
+                },
+                onDismiss: {
+                    showingDatePicker = false
+                }
+            )
+        }
     }
     
     private var headerSection: some View {
@@ -56,22 +72,10 @@ struct BusScheduleView: View {
                     }
                     .foregroundColor(.blue)
                 }
-                
+
                 Spacer()
-                
+
                 HStack(spacing: 12) {
-                    Button(action: {
-                        showingProximityInfo = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "bus.fill")
-                                .font(.body)
-                            Text("接近情報")
-                                .font(.caption)
-                        }
-                        .foregroundColor(.blue)
-                    }
-                    
                     Button(action: {
                         showingSettings = true
                     }) {
@@ -82,14 +86,38 @@ struct BusScheduleView: View {
                 }
             }
             .padding(.horizontal, 20)
-            
+
             Text(viewModel.stationPair.displayName.normalizedForDisplay())
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
-            
-            Text(viewModel.dateString)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+
+            Button(action: {
+                showingDatePicker = true
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "calendar")
+                        .font(.body)
+                        .foregroundColor(.blue)
+
+                    Text(viewModel.dateString)
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+
+                    Image(systemName: "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                )
+            }
         }
         .padding(.top, 40)
         .padding(.bottom, 10)
@@ -133,6 +161,29 @@ struct BusScheduleView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 8)
+    }
+    
+    private var proximityInfoSection: some View {
+        Button(action: {
+            showingProximityInfo = true
+        }) {
+            HStack {
+                Image(systemName: "bus.fill")
+                    .font(.headline)
+                Text("バス接近情報を見る")
+                    .font(.headline)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.subheadline)
+            }
+            .foregroundColor(.white)
+            .padding()
+            .background(Color.blue)
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 2)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
     }
     
     private var scheduleListSection: some View {
@@ -455,6 +506,53 @@ struct BusStopsView: View {
                         
                         Spacer()
                     }
+                }
+            }
+        }
+    }
+}
+
+struct DatePickerSheet: View {
+    let selectedDate: Date
+    let onDateSelected: (Date) -> Void
+    let onDismiss: () -> Void
+
+    @State private var tempDate: Date
+
+    init(selectedDate: Date, onDateSelected: @escaping (Date) -> Void, onDismiss: @escaping () -> Void) {
+        self.selectedDate = selectedDate
+        self.onDateSelected = onDateSelected
+        self.onDismiss = onDismiss
+        self._tempDate = State(initialValue: selectedDate)
+    }
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                DatePicker(
+                    "日付を選択",
+                    selection: $tempDate,
+                    displayedComponents: [.date]
+                )
+                .datePickerStyle(.graphical)
+                .environment(\.locale, Locale(identifier: "ja_JP"))
+                .padding()
+
+                Spacer()
+            }
+            .navigationTitle("日付を選択")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("キャンセル") {
+                        onDismiss()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("完了") {
+                        onDateSelected(tempDate)
+                    }
+                    .fontWeight(.semibold)
                 }
             }
         }
