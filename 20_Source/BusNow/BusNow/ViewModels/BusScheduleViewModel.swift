@@ -142,7 +142,7 @@ class BusScheduleViewModel: ObservableObject {
     
     func selectDirection(_ direction: Direction) {
         selectedDirection = direction
-        
+
         // 方向に基づいて駅ペアを設定
         switch direction {
         case .outbound:
@@ -158,7 +158,17 @@ class BusScheduleViewModel: ObservableObject {
             currentStationPair = reversedStationPair
             stationPair = reversedStationPair
         }
-        
+
+        loadBusSchedules()
+    }
+
+    func setTargetDate(_ date: Date) {
+        targetDate = date
+
+        // 日付変更時にサービスタイプも更新
+        let newServiceType: ServiceType = isWeekday(date) ? .weekday : .holiday
+        selectedServiceType = newServiceType
+
         loadBusSchedules()
     }
     
