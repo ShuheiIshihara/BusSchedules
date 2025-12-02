@@ -5,7 +5,8 @@ struct BusScheduleView: View {
     let onBack: () -> Void
     @State private var showingProximityInfo = false
     @State private var showingSettings = false
-    
+    @State private var showingDatePicker = false
+
     init(stationPair: StationPair, onBack: @escaping () -> Void) {
         self._viewModel = StateObject(wrappedValue: BusScheduleViewModel(stationPair: stationPair))
         self.onBack = onBack
@@ -41,6 +42,18 @@ struct BusScheduleView: View {
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView(scheduleViewModel: viewModel)
+        }
+        .sheet(isPresented: $showingDatePicker) {
+            DatePickerSheet(
+                selectedDate: viewModel.targetDate,
+                onDateSelected: { newDate in
+                    viewModel.setTargetDate(newDate)
+                    showingDatePicker = false
+                },
+                onDismiss: {
+                    showingDatePicker = false
+                }
+            )
         }
     }
     
@@ -87,15 +100,33 @@ struct BusScheduleView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
 
-            DatePicker("", selection: Binding(
-                get: { viewModel.targetDate },
-                set: { newDate in
-                    viewModel.setTargetDate(newDate)
+            Button(action: {
+                showingDatePicker = true
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "calendar")
+                        .font(.body)
+                        .foregroundColor(.blue)
+
+                    Text(viewModel.dateString)
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+
+                    Image(systemName: "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-            ), displayedComponents: [.date])
-                .datePickerStyle(.compact)
-                .labelsHidden()
-                .environment(\.locale, Locale(identifier: "ja_JP"))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                )
+            }
         }
         .padding(.top, 40)
         .padding(.bottom, 10)
@@ -461,6 +492,53 @@ struct BusStopsView: View {
                         
                         Spacer()
                     }
+                }
+            }
+        }
+    }
+}
+
+struct DatePickerSheet: View {
+    let selectedDate: Date
+    let onDateSelected: (Date) -> Void
+    let onDismiss: () -> Void
+
+    @State private var tempDate: Date
+
+    init(selectedDate: Date, onDateSelected: @escaping (Date) -> Void, onDismiss: @escaping () -> Void) {
+        self.selectedDate = selectedDate
+        self.onDateSelected = onDateSelected
+        self.onDismiss = onDismiss
+        self._tempDate = State(initialValue: selectedDate)
+    }
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                DatePicker(
+                    "日付を選択",
+                    selection: $tempDate,
+                    displayedComponents: [.date]
+                )
+                .datePickerStyle(.graphical)
+                .environment(\.locale, Locale(identifier: "ja_JP"))
+                .padding()
+
+                Spacer()
+            }
+            .navigationTitle("日付を選択")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("キャンセル") {
+                        onDismiss()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("完了") {
+                        onDateSelected(tempDate)
+                    }
+                    .fontWeight(.semibold)
                 }
             }
         }
