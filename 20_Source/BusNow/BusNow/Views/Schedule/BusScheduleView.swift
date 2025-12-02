@@ -56,9 +56,9 @@ struct BusScheduleView: View {
                     }
                     .foregroundColor(.blue)
                 }
-                
+
                 Spacer()
-                
+
                 HStack(spacing: 12) {
                     Button(action: {
                         showingProximityInfo = true
@@ -71,7 +71,7 @@ struct BusScheduleView: View {
                         }
                         .foregroundColor(.blue)
                     }
-                    
+
                     Button(action: {
                         showingSettings = true
                     }) {
@@ -82,14 +82,20 @@ struct BusScheduleView: View {
                 }
             }
             .padding(.horizontal, 20)
-            
+
             Text(viewModel.stationPair.displayName.normalizedForDisplay())
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
-            
-            Text(viewModel.dateString)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+
+            DatePicker("", selection: Binding(
+                get: { viewModel.targetDate },
+                set: { newDate in
+                    viewModel.setTargetDate(newDate)
+                }
+            ), displayedComponents: [.date])
+                .datePickerStyle(.compact)
+                .labelsHidden()
+                .environment(\.locale, Locale(identifier: "ja_JP"))
         }
         .padding(.top, 40)
         .padding(.bottom, 10)
