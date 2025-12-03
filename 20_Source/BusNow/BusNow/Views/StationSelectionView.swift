@@ -61,19 +61,18 @@ struct StationSelectionView: View {
                     Button(action: {
                         viewModel.swapStations(&departureStation, &arrivalStation)
                     }) {
-                        Image(systemName: "arrow.up.arrow.down")
-                            .font(.title2)
-                            .foregroundColor(.blue)
-                            .frame(width: 44, height: 44)
-                            .background(
-                                Circle()
-                                    .fill(Color.blue.opacity(0.1))
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                                    )
-                            )
+                        ZStack {
+                            Circle()
+                                .fill(Color.blue)
+                                .frame(width: 48, height: 48)
+                                .shadow(color: Color.blue.opacity(0.3), radius: 4, x: 0, y: 2)
+
+                            Image(systemName: "arrow.up.arrow.down")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
                     }
+                    .buttonStyle(ScaleButtonStyle())
                     .padding(.vertical, 8)
                     
                     // Arrival Station
@@ -219,5 +218,14 @@ struct StationSelectionView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "M/d HH:mm"
         return formatter.string(from: date)
+    }
+}
+
+// Custom button style for scale animation feedback
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
