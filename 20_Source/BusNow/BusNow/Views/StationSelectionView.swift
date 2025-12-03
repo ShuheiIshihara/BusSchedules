@@ -1,11 +1,22 @@
 import SwiftUI
 
+// タブ種類の列挙型（将来のマップタブ追加に対応）
+enum StationSelectionTab: String, CaseIterable {
+    case searchHistory = "検索履歴"
+    // case map = "マップ" // 将来追加予定
+
+    var displayName: String {
+        return rawValue
+    }
+}
+
 struct StationSelectionView: View {
     @StateObject private var viewModel = StationSelectionViewModel()
     @State private var departureStation = ""
     @State private var arrivalStation = ""
     @State private var showingClearAlert = false
     @State private var showingSettings = false
+    @State private var selectedTab: StationSelectionTab = .searchHistory
 
     var onStationsPaired: (StationPair) -> Void
     
@@ -120,73 +131,18 @@ struct StationSelectionView: View {
                 .disabled(departureStation.isEmpty || arrivalStation.isEmpty)
                 .padding(.horizontal, 20)
                 .padding(.top, 32)
-                
-                // Search History Section
-                if !viewModel.searchHistory.isEmpty {
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            Text("検索履歴")
-                                .font(.body)
-                                .fontWeight(.medium)
-                            
-                            Spacer()
-                            
-                            Button("クリア") {
-                                showingClearAlert = true
-                            }
-                            .font(.body)
-                            .foregroundColor(.blue)
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 40)
-                        
-                        List {
-                            ForEach(viewModel.searchHistory, id: \.id) { history in
-                                Button(action: {
-                                    departureStation = history.departureStation
-                                    arrivalStation = history.arrivalStation
-                                }) {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(history.displayName.normalizedForDisplay())
-                                                .foregroundColor(.primary)
-                                            
-                                            Text(formatDate(history.createdAt))
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption)
-                                            .foregroundColor(.gray)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 12)
-                                }
-                                .listRowBackground(Color(.secondarySystemGroupedBackground))
-                                .listRowSeparator(.visible, edges: .bottom)
-                                .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 0))
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button("削除") {
-                                        if let index = viewModel.searchHistory.firstIndex(where: { $0.id == history.id }) {
-                                            viewModel.removeHistoryItem(at: index)
-                                        }
-                                    }
-                                    .tint(.red)
-                                }
-                            }
-                        }
-                        .listStyle(.plain)
-                        .scrollDisabled(true)
-                        .frame(height: CGFloat(viewModel.searchHistory.count * 60))
-                        .background(Color(.secondarySystemGroupedBackground))
-                        .cornerRadius(8)
-                        .padding(.horizontal, 20)
-                    }
+
+                // セグメントコントロール風タブ
+                SegmentedTabView(selectedTab: $selectedTab)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 32)
+
+                // タブコンテンツ
+                switch selectedTab {
+                case .searchHistory:
+                    searchHistoryContent
                 }
-                
+
                 Spacer(minLength: 40)
             }
         }
@@ -218,6 +174,114 @@ struct StationSelectionView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "M/d HH:mm"
         return formatter.string(from: date)
+    }
+
+    // 検索履歴コンテンツ
+    @ViewBuilder
+    private var searchHistoryContent: some View {
+        if viewModel.searchHistory.isEmpty {
+            VStack(spacing: 12) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 40))
+                    .foregroundColor(.gray)
+                Text("検索履歴がありません")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 40)
+        } else {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Spacer()
+
+                    Button("クリア") {
+                        showingClearAlert = true
+                    }
+                    .font(.body)
+                    .foregroundColor(.blue)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+
+                List {
+                    ForEach(viewModel.searchHistory, id: \.id) { history in
+                        Button(action: {
+                            departureStation = history.departureStation
+                            arrivalStation = history.arrivalStation
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(history.displayName.normalizedForDisplay())
+                                        .foregroundColor(.primary)
+
+                                    Text(formatDate(history.createdAt))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                        }
+                        .listRowBackground(Color(.secondarySystemGroupedBackground))
+                        .listRowSeparator(.visible, edges: .bottom)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 0))
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button("削除") {
+                                if let index = viewModel.searchHistory.firstIndex(where: { $0.id == history.id }) {
+                                    viewModel.removeHistoryItem(at: index)
+                                }
+                            }
+                            .tint(.red)
+                        }
+                    }
+                }
+                .listStyle(.plain)
+                .scrollDisabled(true)
+                .frame(height: CGFloat(viewModel.searchHistory.count * 60))
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(8)
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+}
+
+// セグメントコントロール風タブビュー
+struct SegmentedTabView: View {
+    @Binding var selectedTab: StationSelectionTab
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(StationSelectionTab.allCases, id: \.self) { tab in
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedTab = tab
+                    }
+                }) {
+                    Text(tab.displayName)
+                        .font(.body)
+                        .fontWeight(selectedTab == tab ? .medium : .regular)
+                        .foregroundColor(selectedTab == tab ? .white : .primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(selectedTab == tab ? Color.blue : Color.clear)
+                        )
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+        .padding(4)
+        .background(Color(.systemGray5))
+        .cornerRadius(10)
     }
 }
 
