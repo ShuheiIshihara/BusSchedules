@@ -93,3 +93,4 @@ Config-Local.xcconfig
 *.local.xcconfig
 *.env
 .env.local
+20_Source/BusNow/BusNow.xcodeproj/.claude/settings.local.json
