@@ -226,10 +226,19 @@ struct BusScheduleView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
             
-            Button("再試行") {
+            Button(action: {
                 viewModel.refreshSchedules()
+            }) {
+                Text("再試行")
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .frame(minWidth: 120)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 24)
+                    .background(Color.blue)
+                    .cornerRadius(8)
             }
-            .foregroundColor(.blue)
             .padding(.top, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
