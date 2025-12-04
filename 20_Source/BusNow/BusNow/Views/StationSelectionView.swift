@@ -1,11 +1,21 @@
 import SwiftUI
 
+/// 検索入力画面のタブ種別
+enum StationSelectionTab: String, CaseIterable {
+    case history = "履歴"
+
+    var displayName: String {
+        return rawValue
+    }
+}
+
 struct StationSelectionView: View {
     @StateObject private var viewModel = StationSelectionViewModel()
     @State private var departureStation = ""
     @State private var arrivalStation = ""
     @State private var showingClearAlert = false
     @State private var showingSettings = false
+    @State private var selectedTab: StationSelectionTab = .history
 
     var onStationsPaired: (StationPair) -> Void
     
@@ -121,69 +131,22 @@ struct StationSelectionView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 32)
                 
-                // Search History Section
-                if !viewModel.searchHistory.isEmpty {
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            Text("検索履歴")
-                                .font(.body)
-                                .fontWeight(.medium)
-                            
-                            Spacer()
-                            
-                            Button("クリア") {
-                                showingClearAlert = true
-                            }
-                            .font(.body)
-                            .foregroundColor(.blue)
+                // Tab Section
+                VStack(spacing: 0) {
+                    // Tab Picker
+                    Picker("Tab", selection: $selectedTab) {
+                        ForEach(StationSelectionTab.allCases, id: \.self) { tab in
+                            Text(tab.displayName).tag(tab)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 40)
-                        
-                        List {
-                            ForEach(viewModel.searchHistory, id: \.id) { history in
-                                Button(action: {
-                                    departureStation = history.departureStation
-                                    arrivalStation = history.arrivalStation
-                                }) {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(history.displayName.normalizedForDisplay())
-                                                .foregroundColor(.primary)
-                                            
-                                            Text(formatDate(history.createdAt))
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption)
-                                            .foregroundColor(.gray)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 12)
-                                }
-                                .listRowBackground(Color(.secondarySystemGroupedBackground))
-                                .listRowSeparator(.visible, edges: .bottom)
-                                .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 0))
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button("削除") {
-                                        if let index = viewModel.searchHistory.firstIndex(where: { $0.id == history.id }) {
-                                            viewModel.removeHistoryItem(at: index)
-                                        }
-                                    }
-                                    .tint(.red)
-                                }
-                            }
-                        }
-                        .listStyle(.plain)
-                        .scrollDisabled(true)
-                        .frame(height: CGFloat(viewModel.searchHistory.count * 60))
-                        .background(Color(.secondarySystemGroupedBackground))
-                        .cornerRadius(8)
-                        .padding(.horizontal, 20)
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 40)
+
+                    // Tab Content
+                    switch selectedTab {
+                    case .history:
+                        searchHistoryContent
                     }
                 }
                 
@@ -218,6 +181,88 @@ struct StationSelectionView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "M/d HH:mm"
         return formatter.string(from: date)
+    }
+
+    // MARK: - Tab Content Views
+
+    /// 検索履歴タブのコンテンツ
+    @ViewBuilder
+    private var searchHistoryContent: some View {
+        if viewModel.searchHistory.isEmpty {
+            VStack(spacing: 12) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 40))
+                    .foregroundColor(.gray)
+                Text("検索履歴がありません")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 60)
+        } else {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Text("検索履歴")
+                        .font(.body)
+                        .fontWeight(.medium)
+
+                    Spacer()
+
+                    Button("クリア") {
+                        showingClearAlert = true
+                    }
+                    .font(.body)
+                    .foregroundColor(.blue)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+
+                List {
+                    ForEach(viewModel.searchHistory, id: \.id) { history in
+                        Button(action: {
+                            departureStation = history.departureStation
+                            arrivalStation = history.arrivalStation
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(history.displayName.normalizedForDisplay())
+                                        .foregroundColor(.primary)
+
+                                    Text(formatDate(history.createdAt))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                        }
+                        .listRowBackground(Color(.secondarySystemGroupedBackground))
+                        .listRowSeparator(.visible, edges: .bottom)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 0))
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button("削除") {
+                                if let index = viewModel.searchHistory.firstIndex(where: { $0.id == history.id }) {
+                                    viewModel.removeHistoryItem(at: index)
+                                }
+                            }
+                            .tint(.red)
+                        }
+                    }
+                }
+                .listStyle(.plain)
+                .scrollDisabled(true)
+                .frame(height: CGFloat(viewModel.searchHistory.count * 60))
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(8)
+                .padding(.horizontal, 20)
+            }
+        }
     }
 }
 
