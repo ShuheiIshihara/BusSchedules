@@ -147,19 +147,17 @@ struct BusScheduleView: View {
     }
     
     private var currentTimeSection: some View {
-        HStack {
-            Text("現在時刻")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Spacer()
-            
+        HStack(spacing: 8) {
+            Image(systemName: "clock.fill")
+                .font(.title3)
+                .foregroundColor(.blue)
+
             Text(viewModel.currentTimeString)
                 .font(.title3)
                 .fontWeight(.semibold)
                 .foregroundColor(.blue)
         }
-        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity)
         .padding(.bottom, 8)
     }
     
