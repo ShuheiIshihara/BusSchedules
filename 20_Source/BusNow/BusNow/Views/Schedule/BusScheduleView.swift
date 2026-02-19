@@ -20,9 +20,6 @@ struct BusScheduleView: View {
             // Service Type Tabs (平日/土日祝)
             serviceTypeTabsSection
             
-            // Current Time Display
-            currentTimeSection
-            
             // Proximity Info Button
             proximityInfoSection
             
@@ -95,28 +92,41 @@ struct BusScheduleView: View {
                 showingDatePicker = true
             }) {
                 HStack(spacing: 8) {
-                    Image(systemName: "calendar")
-                        .font(.body)
-                        .foregroundColor(.blue)
+                    HStack(spacing: 8) {
+                        Image(systemName: "calendar")
+                            .font(.body)
+                            .foregroundColor(.blue)
 
-                    Text(viewModel.dateString)
-                        .font(.subheadline)
-                        .foregroundColor(.primary)
+                        Text(viewModel.dateString)
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
 
-                    Image(systemName: "chevron.down")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        Image(systemName: "chevron.down")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(.secondarySystemGroupedBackground))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                    )
+                    HStack(spacing: 8) {
+                        Image(systemName: "clock.fill")
+                            .font(.title3)
+                            .foregroundColor(.blue)
+
+                        Text(viewModel.currentTimeString)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.blue)
+                            .monospacedDigit()
+                    }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(.secondarySystemGroupedBackground))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                )
             }
         }
         .padding(.top, 40)
@@ -156,6 +166,7 @@ struct BusScheduleView: View {
                 .font(.title3)
                 .fontWeight(.semibold)
                 .foregroundColor(.blue)
+                .monospacedDigit()
         }
         .frame(maxWidth: .infinity)
         .padding(.bottom, 8)
