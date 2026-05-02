@@ -104,7 +104,7 @@ class SupabaseService: ObservableObject {
                     "target_date": dateString
                 ]
                 
-                let response = try await client.rpc("get_phase1_bus_schedule_2", params: rpcParams).execute()
+                let response = try await client.rpc("get_phase1_bus_schedule_3", params: rpcParams).execute()
                 let data = response.data
                 
                 // レスポンスデータの詳細ログ
@@ -238,6 +238,7 @@ class SupabaseService: ObservableObject {
 
 struct BusScheduleRPCResponse: Codable {
     let departureTime: String
+    let arrivalTime: String?
     let routeName: String
     let destination: String
     let platform: String
@@ -245,9 +246,10 @@ struct BusScheduleRPCResponse: Codable {
     let departureMinutes: Double
     let serviceId: String
     let busStops: [String]?  // バス停リスト（オプショナル）
-    
+
     private enum CodingKeys: String, CodingKey {
         case departureTime = "departureTime"
+        case arrivalTime = "arrivalTime"
         case routeName = "routeName"
         case destination = "destination"
         case platform = "platform"
@@ -260,43 +262,37 @@ struct BusScheduleRPCResponse: Codable {
 
 struct BusScheduleData {
     let departureTime: String
+    let arrivalTime: String?
     let routeName: String
     let destination: String
     let platform: String
     let serviceId: String
     let busStops: [String]  // バス停リスト
-    
+
     // RPC レスポンスから BusScheduleData への変換（表示用正規化適用）
     init(from rpcResponse: BusScheduleRPCResponse) {
-        // 時刻から秒を削除（HH:MM:SS → HH:MM）
         self.departureTime = Self.formatTimeWithoutSeconds(rpcResponse.departureTime)
+        self.arrivalTime = rpcResponse.arrivalTime.map { Self.formatTimeWithoutSeconds($0) }
         self.routeName = rpcResponse.routeName.normalizedForDisplay()
         self.destination = rpcResponse.destination.normalizedForDisplay()
         self.platform = rpcResponse.platform
         self.serviceId = rpcResponse.serviceId
-        
-        // バス停リストの正規化処理（重複を削除して表示用に整理）
-        if let stops = rpcResponse.busStops {
-            self.busStops = stops
-        } else {
-            self.busStops = []
-        }
+        self.busStops = rpcResponse.busStops ?? []
     }
-    
+
     // 時刻文字列から秒を削除するヘルパー関数
     private static func formatTimeWithoutSeconds(_ timeString: String) -> String {
-        // HH:MM:SS形式の場合、HH:MMに変換
         let components = timeString.split(separator: ":")
         if components.count >= 2 {
             return "\(components[0]):\(components[1])"
         }
-        // すでにHH:MM形式の場合はそのまま返す
         return timeString
     }
-    
+
     // 既存のイニシャライザーも保持（テスト用）
-    init(departureTime: String, routeName: String, destination: String, platform: String, serviceId: String = "平日", busStops: [String] = []) {
+    init(departureTime: String, arrivalTime: String? = nil, routeName: String, destination: String, platform: String, serviceId: String = "平日", busStops: [String] = []) {
         self.departureTime = departureTime
+        self.arrivalTime = arrivalTime
         self.routeName = routeName
         self.destination = destination
         self.platform = platform

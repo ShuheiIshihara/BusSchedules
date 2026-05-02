@@ -346,51 +346,80 @@ struct BusScheduleView: View {
     }
 }
 
+// A5案 デザイントークン
+private extension Color {
+    static let depBadge  = Color(red: 30/255,  green: 158/255, blue: 90/255)   // #1E9E5A
+    static let arrBadge  = Color(red: 210/255, green: 58/255,  blue: 94/255)   // #D23A5E
+    static let pastBadge = Color(red: 189/255, green: 189/255, blue: 189/255)  // #BDBDBD
+    static let pastTime  = Color(red: 158/255, green: 158/255, blue: 158/255)  // #9E9E9E
+}
+
 struct BusScheduleRowView: View {
     let schedule: BusScheduleData
     let isPastTime: Bool
     let isNextBus: Bool
     let minutesUntil: Int?
     @State private var isExpanded: Bool = false
-    
-    // Force view update by making it depend on a changing value
+
     let currentTime: Date
-    
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .center, spacing: 12) {
-                // Time Display
-                VStack {
-                    Text(schedule.departureTime)
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(isPastTime ? .gray : .primary)
-                    
-                    if isPastTime {
-                        Text("発車済")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                    } else if isNextBus {
+                // A5案 時刻カラム（発・着バッジ）
+                VStack(alignment: .leading, spacing: 4) {
+                    // 発バッジ + 出発時刻
+                    HStack(spacing: 5) {
+                        Text("発")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(isPastTime ? Color.pastBadge : Color.depBadge)
+                            .cornerRadius(3)
+                        Text(schedule.departureTime)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(isPastTime ? Color.pastTime : Color(uiColor: .label))
+                            .monospacedDigit()
+                    }
+
+                    // 着バッジ + 到着時刻
+                    if let arrivalTime = schedule.arrivalTime {
+                        HStack(spacing: 5) {
+                            Text("着")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 1)
+                                .background(isPastTime ? Color.pastBadge : Color.arrBadge)
+                                .cornerRadius(3)
+                            Text(arrivalTime)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(isPastTime ? Color.pastTime : Color(uiColor: .label))
+                                .monospacedDigit()
+                        }
+                    }
+
+                    // 次の便ラベル
+                    if isNextBus {
                         if let minutes = minutesUntil {
                             Text(minutes == 1 ? "まもなく" : "あと\(minutes)分")
-                                .font(.caption2)
-                                .fontWeight(.semibold)
+                                .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(.blue)
                         } else {
                             Text("次のバス")
-                                .font(.caption2)
-                                .fontWeight(.semibold)
+                                .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(.blue)
                         }
                     }
                 }
-                .frame(width: 60, alignment: .leading)
+                .frame(minWidth: 90, alignment: .leading)
                 
                 // Route and Destination Info
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(schedule.routeName.normalizedForDisplay())
-                            .fontWeight(.semibold)
+                            .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(.white)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
