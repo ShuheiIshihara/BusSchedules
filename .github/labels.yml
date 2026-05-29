@@ -1,0 +1,11 @@
+- name: "claude:opus"
+  color: "d73a4a"
+  description: "Use Claude Opus for complex tasks"
+
+- name: "claude:sonnet"
+  color: "0075ca"
+  description: "Use Claude Sonnet for standard tasks"
+
+- name: "complex"
+  color: "f9d0c4"
+  description: "Complex changes requiring deep analysis"

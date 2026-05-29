@@ -10,7 +10,7 @@ This is **BusNow**, an iOS bus schedule app specifically designed for Nagoya Cit
 
 - **Pattern**: MVVM (Model-View-ViewModel) + Service Layer
 - **UI Framework**: SwiftUI
-- **Target Platform**: iOS (private distribution, not App Store)
+- **Target Platform**: iOS (App Store distribution)
 - **Data Format**: GTFS-JP compliant
 - **Target Service**: Nagoya City Bus only (unofficial app)
 
