@@ -1,0 +1,32 @@
+name: DB Compare
+
+on:
+  workflow_dispatch:
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/db-compare
+    env:
+      PROD_URL: ${{ secrets.PROD_URL }}
+      PROD_ANON_KEY: ${{ secrets.PROD_ANON_KEY }}
+      STG_URL: ${{ secrets.STG_URL }}
+      STG_ANON_KEY: ${{ secrets.STG_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node fetch.mjs prod
+      - run: node fetch.mjs staging
+      - run: node diff.mjs
+      - name: Job Summary
+        if: always()
+        run: '[ -f out/report.md ] && cat out/report.md >> "$GITHUB_STEP_SUMMARY" || true'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: db-compare-result
+          path: tools/db-compare/out
