@@ -163,7 +163,7 @@ class SupabaseService: ObservableObject {
                     
                     // BusScheduleData 配列に変換
                     let schedules = rpcResponses.map { BusScheduleData(from: $0) }
-                    return schedules
+                    return Self.deduplicatedSchedules(schedules)
                     
                 } catch {
                     #if DEBUG
@@ -221,6 +221,27 @@ class SupabaseService: ObservableObject {
         }
     }
     
+    // 環状線や同一停留所の重複通過により、同じ便が複数行返ることがある。
+    // (出発時刻, 路線名, 行先) が同じ便は、到着が最も早いものだけを残す。元の順序は保持する。
+    static func deduplicatedSchedules(_ schedules: [BusScheduleData]) -> [BusScheduleData] {
+        var bestIndex: [String: Int] = [:]
+        var result: [BusScheduleData] = []
+        for schedule in schedules {
+            let key = "\(schedule.departureTime)|\(schedule.routeName)|\(schedule.destination)"
+            if let index = bestIndex[key] {
+                let current = result[index].arrivalTime ?? "99:99"
+                let candidate = schedule.arrivalTime ?? "99:99"
+                if candidate < current {
+                    result[index] = schedule
+                }
+            } else {
+                bestIndex[key] = result.count
+                result.append(schedule)
+            }
+        }
+        return result
+    }
+
     func getRouteSettings() async throws -> [RouteSettingData] {
         #if DEBUG
         print("SupabaseService: getRouteSettings placeholder - SDK integration required")
