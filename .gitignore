@@ -97,3 +97,4 @@ Config-Local.xcconfig
 
 # db-compare output
 tools/db-compare/out/
+reports/compare/raw_*.csv
