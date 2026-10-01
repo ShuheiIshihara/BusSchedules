@@ -5,9 +5,28 @@ final class StringNormalizationTests: XCTestCase {
     
     func testBasicUnicodeNormalization() {
         // 基本的なUnicode正規化テスト
-        let input = "高辻"  // 標準的な文字列
+        let input = "新宿"  // しんにょうを含まない標準的な文字列
         let normalized = StringNormalization.normalizeForSearch(input)
         XCTAssertEqual(normalized, input, "標準的な文字列は変更されないべき")
+    }
+    
+    func testSearchAppendsVariationSelectorForTsuji() {
+        // DBは辻を異体字セレクタ(U+E0100)付きで保存しているため、検索時に付与する
+        let withoutSelector = "高辻"
+        let withSelector = "高辻\u{E0100}"
+        XCTAssertEqual(StringNormalization.normalizeForSearch(withoutSelector), withSelector)
+        XCTAssertEqual(StringNormalization.normalizeForSearch(withSelector), withSelector, "既にセレクタ付きなら二重に付与しない")
+    }
+    
+    func testSearchLeavesUnconfirmedCharactersUnchanged() {
+        // 込・迫・追はDB表記が未確認のため、検索では変更しない
+        for name in ["込", "迫", "追"] {
+            XCTAssertEqual(StringNormalization.normalizeForSearch(name), name)
+        }
+    }
+    
+    func testDisplayForcesVariationSelector() {
+        XCTAssertEqual(StringNormalization.normalizeForDisplay("高辻"), "高辻\u{E0100}")
     }
     
     func testComposedCharacterNormalization() {
@@ -21,7 +40,7 @@ final class StringNormalizationTests: XCTestCase {
     
     func testStationNameConsistency() {
         // 駅名の一貫性テスト（フォント表示問題対応）
-        let stationNames = ["高辻", "新宿", "池袋", "上野"]
+        let stationNames = ["新宿", "池袋", "上野"]
         
         for stationName in stationNames {
             let normalized = StringNormalization.normalizeForSearch(stationName)
