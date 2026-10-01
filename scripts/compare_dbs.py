@@ -7,7 +7,7 @@
 RPC関数名はDBごとに異なる(環境変数で上書き可):
   SUPABASE_A_RPC  既定 get_phase1_bus_schedule_3(本番)
   SUPABASE_B_RPC  既定 get_bus_schedule_2026(検証)
-引数名は両DBとも departure_station / arrival_station / target_date を想定(未確認)。
+引数名(departure_station / arrival_station / target_date)と応答のキーは両DBで同一(確認済み)。
 
 使い方:
   python3 scripts/compare_dbs.py <区間CSV> --date 2026-10-05 [--sample N] [--seed S] [--out-dir reports/compare]

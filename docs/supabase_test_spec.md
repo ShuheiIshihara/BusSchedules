@@ -104,7 +104,7 @@ export SUPABASE_B_URL=... SUPABASE_B_KEY=...   # 検証
 python3 scripts/compare_dbs.py <区間CSV> --date 2026-10-05 --sample 8 --seed 1
 ```
 
-- RPC関数名はDBごとに異なる: A(本番)`get_phase1_bus_schedule_3` / B(検証)`get_bus_schedule_2026`(`SUPABASE_A_RPC` / `SUPABASE_B_RPC` で上書き可)。引数名・応答のキーは同一と想定しており、B側は未確認。
+- RPC関数名はDBごとに異なる: A(本番)`get_phase1_bus_schedule_3` / B(検証)`get_bus_schedule_2026`(`SUPABASE_A_RPC` / `SUPABASE_B_RPC` で上書き可)。引数名・応答のキーは両DBで同一(確認済み)。
 - 出力: `reports/compare/compare_report.md`(生データ `raw_A.csv` / `raw_B.csv` は git 管理外)。
 - 照合は完全一致(多重集合)。差分があれば終了コード1。
 - 取得済みCSV同士の比較: `--offline A.csv B.csv`。
