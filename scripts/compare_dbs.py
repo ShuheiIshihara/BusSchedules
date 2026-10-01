@@ -4,6 +4,10 @@
 接続先は環境変数で切り替える(鍵はコード・リポジトリに入れない):
   SUPABASE_A_URL / SUPABASE_A_KEY   例: 本番  https://xxxx.supabase.co
   SUPABASE_B_URL / SUPABASE_B_KEY   例: 検証
+RPC関数名はDBごとに異なる(環境変数で上書き可):
+  SUPABASE_A_RPC  既定 get_phase1_bus_schedule_3(本番)
+  SUPABASE_B_RPC  既定 get_bus_schedule_2026(検証)
+引数名は両DBとも departure_station / arrival_station / target_date を想定(未確認)。
 
 使い方:
   python3 scripts/compare_dbs.py <区間CSV> --date 2026-10-05 [--sample N] [--seed S] [--out-dir reports/compare]
@@ -15,7 +19,7 @@
 import argparse, collections, csv, datetime, json, os, random, sys, time, urllib.request, urllib.error
 
 csv.field_size_limit(10**9)
-RPC = "get_phase1_bus_schedule_3"
+DEFAULT_RPC = {"A": "get_phase1_bus_schedule_3", "B": "get_bus_schedule_2026"}
 SEL = "\U000e0100"
 
 
@@ -30,9 +34,9 @@ def search_form(name):
     return "".join(out)
 
 
-def call_rpc(url, key, dep, arr, date, retries=3):
+def call_rpc(url, key, rpc, dep, arr, date, retries=3):
     req = urllib.request.Request(
-        f"{url.rstrip('/')}/rest/v1/rpc/{RPC}",
+        f"{url.rstrip('/')}/rest/v1/rpc/{rpc}",
         data=json.dumps({"departure_station": search_form(dep), "arrival_station": search_form(arr),
                          "target_date": date}).encode(),
         headers={"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"})
@@ -119,14 +123,15 @@ def main():
                                    for r in csv.DictReader(open(x.csv, encoding="utf-8"))))
         if x.sample and x.sample < len(pairs):
             pairs = random.Random(x.seed).sample(pairs, x.sample)
+        rpc = {k: os.environ.get(f"SUPABASE_{k}_RPC") or DEFAULT_RPC[k] for k in "AB"}
         a, b = {}, {}
         for d, ar in pairs:
-            a[(d, ar)] = call_rpc(env["SUPABASE_A_URL"], env["SUPABASE_A_KEY"], d, ar, x.date)
-            b[(d, ar)] = call_rpc(env["SUPABASE_B_URL"], env["SUPABASE_B_KEY"], d, ar, x.date)
+            a[(d, ar)] = call_rpc(env["SUPABASE_A_URL"], env["SUPABASE_A_KEY"], rpc["A"], d, ar, x.date)
+            b[(d, ar)] = call_rpc(env["SUPABASE_B_URL"], env["SUPABASE_B_KEY"], rpc["B"], d, ar, x.date)
         save(os.path.join(x.out_dir, "raw_A.csv"), a)
         save(os.path.join(x.out_dir, "raw_B.csv"), b)
         header = [f"- 区間CSV: `{x.csv}` / date={x.date}" + (f" / sample={x.sample}, seed={x.seed}" if x.sample else ""),
-                  "- A・B の接続先URLは記録しない(環境変数から取得)"]
+                  f"- RPC: A=`{rpc['A']}` / B=`{rpc['B']}`", "- A・B の接続先URLは記録しない(環境変数から取得)"]
     text, n = report(a, b, header)
     open(os.path.join(x.out_dir, "compare_report.md"), "w", encoding="utf-8").write(text)
     print("\n".join(text.splitlines()[:6]))
