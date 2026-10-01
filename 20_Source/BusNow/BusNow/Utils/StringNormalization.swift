@@ -62,39 +62,31 @@ class StringNormalization {
         )
     }
     
-    // 検索用：異体字セレクタを除去してデータベース文字と一致させる
+    // DB上で異体字セレクタ(U+E0100)付きで保存されていることを確認済みの文字。
+    // 確認元: RPC結果CSV(辻のみ。例: 高辻󠄀、辻󠄀本通)。込・迫・追はDBでの表記が未確認のため、検索では変更しない。
+    private static let databaseSelectorCharacters: [String] = ["辻"]
+    
+    // 検索用：DBの表記に合わせる(DBでセレクタ付きの文字に、無ければ付与する)
     private static func convertToTwoPointShinnyou(_ string: String) -> String {
-        var result = string
-        
-        // 各しんにょう文字に異体字セレクタを追加して1点表示を強制
-        for (twoPoint, _) in shinnnyouMapping {
-            // 既に異体字セレクタが付いていない場合のみ追加
-            let pattern = "\(twoPoint)(?!\u{E0100})"
-            result = result.replacingOccurrences(
-                of: pattern,
-                with: "\(twoPoint)\u{E0100}",
-                options: .regularExpression
-            )
-        }
-        
-        return result
+        return appendingVariationSelector(to: string, characters: databaseSelectorCharacters)
     }
     
-    // 表示用：2点しんにょう文字を1点しんにょう表示に変換
+    // 表示用：しんにょう文字すべてにセレクタを付与して1点表示を強制する
     private static func convertToOnePointShinnyou(_ string: String) -> String {
+        return appendingVariationSelector(to: string, characters: Array(shinnnyouMapping.keys))
+    }
+    
+    // 指定文字の直後に異体字セレクタが無ければ付与する
+    private static func appendingVariationSelector(to string: String, characters: [String]) -> String {
         var result = string
-        
-        // 各しんにょう文字に異体字セレクタを追加して1点表示を強制
-        for (twoPoint, _) in shinnnyouMapping {
-            // 既に異体字セレクタが付いていない場合のみ追加
-            let pattern = "\(twoPoint)(?!\u{E0100})"
+        for character in characters {
+            let pattern = "\(character)(?!\u{E0100})"
             result = result.replacingOccurrences(
                 of: pattern,
-                with: "\(twoPoint)\u{E0100}",
+                with: "\(character)\u{E0100}",
                 options: .regularExpression
             )
         }
-        
         return result
     }
     
