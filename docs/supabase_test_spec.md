@@ -107,6 +107,7 @@ python3 scripts/compare_dbs.py <区間CSV> --date 2026-10-05 --sample 8 --seed 1
 - RPC関数名はDBごとに異なる: A(本番)`get_phase1_bus_schedule_3` / B(検証)`get_bus_schedule_2026`(`SUPABASE_A_RPC` / `SUPABASE_B_RPC` で上書き可)。引数名・応答のキーは両DBで同一(確認済み)。
 - 出力: `reports/compare/compare_report.md`(生データ `raw_A.csv` / `raw_B.csv` は git 管理外)。
 - 照合は完全一致(多重集合)。差分があれば終了コード1。
+- 鍵・URLは `.env`(`.env.example` をコピーして作成、git管理外)からも読める。実環境の環境変数が優先。`--env-file` でパス指定可。
 - 取得済みCSV同士の比較: `--offline A.csv B.csv`。
 - 鍵・接続先URLは記録しない。
 

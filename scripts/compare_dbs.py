@@ -4,6 +4,8 @@
 接続先は環境変数で切り替える(鍵はコード・リポジトリに入れない):
   SUPABASE_A_URL / SUPABASE_A_KEY   例: 本番  https://xxxx.supabase.co
   SUPABASE_B_URL / SUPABASE_B_KEY   例: 検証
+.env ファイルからも読める(--env-file、既定 ./.env)。.env は .gitignore 済み。実環境の環境変数が優先される。
+  例) SUPABASE_A_URL=... を1行ずつ書く(`#`コメント、`export ` 接頭辞、引用符に対応)
 RPC関数名はDBごとに異なる(環境変数で上書き可):
   SUPABASE_A_RPC  既定 get_phase1_bus_schedule_3(本番)
   SUPABASE_B_RPC  既定 get_bus_schedule_2026(検証)
@@ -21,6 +23,21 @@ import argparse, collections, csv, datetime, json, os, random, sys, time, urllib
 csv.field_size_limit(10**9)
 DEFAULT_RPC = {"A": "get_phase1_bus_schedule_3", "B": "get_bus_schedule_2026"}
 SEL = "\U000e0100"
+
+
+def load_env_file(path):
+    # 最小限の .env 読み込み。既に設定済みの環境変数は上書きしない。値はログに出さない。
+    if not os.path.isfile(path):
+        return
+    for line in open(path, encoding="utf-8"):
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.removeprefix("export ").split("=", 1)
+        k, v = k.strip(), v.strip()
+        if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
+            v = v[1:-1]
+        os.environ.setdefault(k, v)
 
 
 def search_form(name):
@@ -105,6 +122,7 @@ def main():
     p.add_argument("--sample", type=int)
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--out-dir", default="reports/compare")
+    p.add_argument("--env-file", default=".env")
     p.add_argument("--offline", nargs=2, metavar=("A_CSV", "B_CSV"))
     x = p.parse_args()
     os.makedirs(x.out_dir, exist_ok=True)
@@ -115,6 +133,7 @@ def main():
     else:
         if not x.csv or not x.date:
             p.error("区間CSVと --date が必要です")
+        load_env_file(x.env_file)
         env = {k: os.environ.get(k, "") for k in ("SUPABASE_A_URL", "SUPABASE_A_KEY", "SUPABASE_B_URL", "SUPABASE_B_KEY")}
         missing = [k for k, v in env.items() if not v]
         if missing:
