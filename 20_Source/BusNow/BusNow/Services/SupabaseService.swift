@@ -45,10 +45,10 @@ class SupabaseService: ObservableObject {
         
         do {
             // 匿名アクセス用の接続テスト: RPC関数を使用してデータベース接続を確認
-            let result = try client.rpc("phase1_health_check")
+            let result = try await client.rpc("phase1_health_check").execute()
             #if DEBUG
             print("SupabaseService: Database connection test successful")
-            print("SupabaseService: Health check result: \(result)")
+            print("SupabaseService: Health check result: status \(result.status), \(result.data.count) bytes")
             #endif
             return true
         } catch {

@@ -105,5 +105,5 @@ BusNow が利用する Supabase(GTFS-JP データ)の動作を、サンプリン
 
 - 除去前の重複は、環状線の「1周して戻る」エントリと、末尾停留所の二重登録で発生する。
   根本対応は RPC 側で `trip_id` 単位に1行へ絞ること(DB 定義が未確認のため、現状はアプリ側で除去)。
-- `testConnection` の `client.rpc("phase1_health_check")` に `await` / `execute()` が無く、RPC が実行されていない可能性がある。C-01 の結果は修正前後で意味が変わる。
+- `testConnection` の `client.rpc("phase1_health_check")` は `await` / `execute()` が無く RPC が実行されていなかったため修正済み。以後 C-01 は実際に RPC を呼ぶ。修正前の接続成功の記録は RPC を検証していない。
 - 検索用正規化(`convertToTwoPointShinnyou`)が表示用と同一実装で、セレクタを付与する。辻/込/迫/追を含む駅名で検索が合わない可能性がある(S-01 で該当駅名を追加確認する)。
