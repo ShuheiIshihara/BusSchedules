@@ -1,4 +1,4 @@
-// 使い方: node diff.mjs  (out/prod と out/staging を比較し out/report.md, out/diff.json を出力)
+// 使い方: node diff.mjs  (out/prod と out/local を比較し out/report.md, out/diff.json を出力)
 import { readFile, readdir, writeFile } from "node:fs/promises";
 
 const OUT = process.env.OUT_DIR ?? "out";
@@ -34,10 +34,10 @@ const results = [];
 
 for (const f of files) {
   let p, s;
-  try { p = await load("prod", f); s = await load("staging", f); }
+  try { p = await load("prod", f); s = await load("local", f); }
   catch { results.push({ file: f, status: "missing" }); continue; }
   const c = p.case;
-  if (!p.ok || !s.ok) { results.push({ file: f, case: c, status: "error", prod: p.error, staging: s.error }); continue; }
+  if (!p.ok || !s.ok) { results.push({ file: f, case: c, status: "error", prod: p.error, local: s.error }); continue; }
   const d = compare(p.data, s.data);
   const same = !d.added.length && !d.removed.length && !d.changed.length;
   results.push({ file: f, case: c, status: same ? "same" : "diff", before: p.data?.length ?? 0, after: s.data?.length ?? 0, ...d });
@@ -45,16 +45,16 @@ for (const f of files) {
 
 const count = (st) => results.filter((r) => r.status === st).length;
 const md = [
-  "# DB比較レポート (本番=Before / 検証=After)", "",
+  "# DB比較レポート (本番=Before / ローカル=After)", "",
   `- 比較ケース: ${results.length}`,
   `- 一致: ${count("same")} / 差分あり: ${count("diff")} / 取得エラー: ${count("error")} / 欠落: ${count("missing")}`, "",
-  "| 出発 | 到着 | 日付 | 結果 | 本番件数 | 検証件数 | 追加 | 削除 | 変更 |",
+  "| 出発 | 到着 | 日付 | 結果 | 本番件数 | ローカル件数 | 追加 | 削除 | 変更 |",
   "|---|---|---|---|---|---|---|---|---|",
   ...results.map((r) => r.case
     ? `| ${r.case.departure} | ${r.case.arrival} | ${r.case.date} | ${r.status} | ${r.before ?? "-"} | ${r.after ?? "-"} | ${r.added?.length ?? "-"} | ${r.removed?.length ?? "-"} | ${r.changed?.length ?? "-"} |`
     : `| ${r.file} | | | ${r.status} | | | | | |`),
 ];
-for (const r of results.filter((r) => r.status === "error")) md.push("", `**エラー** ${r.file}: prod=${r.prod ?? "ok"} / staging=${r.staging ?? "ok"}`);
+for (const r of results.filter((r) => r.status === "error")) md.push("", `**エラー** ${r.file}: prod=${r.prod ?? "ok"} / local=${r.local ?? "ok"}`);
 for (const r of results.filter((r) => r.status === "diff")) {
   md.push("", `## ${r.case.departure} → ${r.case.arrival} (${r.case.date})`);
   const fmt = (x) => `${x.departureTime} ${x.routeName} 行き:${x.destination}`;

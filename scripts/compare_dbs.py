@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""本番DB(A)と検証DB(B)に同じ条件でRPCを呼び、重複除去前の生データを比較する。
+"""本番DB(A)とローカルDB(B)に同じ条件でRPCを呼び、重複除去前の生データを比較する。
 
 接続先は環境変数で切り替える(鍵はコード・リポジトリに入れない):
   SUPABASE_A_URL / SUPABASE_A_KEY   例: 本番  https://xxxx.supabase.co
-  SUPABASE_B_URL / SUPABASE_B_KEY   例: 検証
+  SUPABASE_B_URL / SUPABASE_B_KEY   例: ローカル http://127.0.0.1:54321(supabase/README.md)
 .env ファイルからも読める(--env-file、既定 ./.env)。.env は .gitignore 済み。実環境の環境変数が優先される。
   例) SUPABASE_A_URL=... を1行ずつ書く(`#`コメント、`export ` 接頭辞、引用符に対応)
-RPC関数名はDBごとに異なる(環境変数で上書き可):
-  SUPABASE_A_RPC  既定 get_phase1_bus_schedule_3(本番)
-  SUPABASE_B_RPC  既定 get_bus_schedule_2026(検証)
-引数名(departure_station / arrival_station / target_date)と応答のキーは両DBで同一(確認済み)。
+RPC関数名は既定で両DBとも get_phase1_bus_schedule_3。更新で変わる場合は環境変数で上書きする:
+  SUPABASE_A_RPC / SUPABASE_B_RPC
+引数名(departure_station / arrival_station / target_date)と応答のキーは両DBで同一であること。
 
 使い方:
   python3 scripts/compare_dbs.py <区間CSV> --date 2026-10-05 [--sample N] [--seed S] [--out-dir reports/compare]
@@ -21,7 +20,7 @@ RPC関数名はDBごとに異なる(環境変数で上書き可):
 import argparse, collections, csv, datetime, json, os, random, sys, time, urllib.request, urllib.error
 
 csv.field_size_limit(10**9)
-DEFAULT_RPC = {"A": "get_phase1_bus_schedule_3", "B": "get_bus_schedule_2026"}
+DEFAULT_RPC = {"A": "get_phase1_bus_schedule_3", "B": "get_phase1_bus_schedule_3"}
 SEL = "\U000e0100"
 
 

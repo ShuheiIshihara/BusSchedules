@@ -1,19 +1,21 @@
-// 使い方: node fetch.mjs <prod|staging>
-// 環境変数: {PROD,STG}_URL / {PROD,STG}_ANON_KEY  (任意) CASES_FILE, OUT_DIR
+// 使い方: node fetch.mjs <prod|local>
+// 環境変数: PROD_URL / PROD_ANON_KEY / LOCAL_ANON_KEY  (任意) LOCAL_URL, {PROD,LOCAL}_RPC, CASES_FILE, OUT_DIR
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { normalizeForSearch, caseId, expandCases } from "./lib.mjs";
 
 const ENVS = {
-  prod: { url: "PROD_URL", key: "PROD_ANON_KEY", rpc: "get_phase1_bus_schedule_3" },
-  staging: { url: "STG_URL", key: "STG_ANON_KEY", rpc: "get_bus_schedule_2026" },
+  prod: { url: "PROD_URL", key: "PROD_ANON_KEY", rpc: "PROD_RPC" },
+  local: { url: "LOCAL_URL", key: "LOCAL_ANON_KEY", rpc: "LOCAL_RPC", defaultUrl: "http://127.0.0.1:54321" },
 };
+const DEFAULT_RPC = "get_phase1_bus_schedule_3";
 const CONCURRENCY = 4;
 const RETRIES = 3;
 
 const name = process.argv[2];
 const env = ENVS[name];
-if (!env) { console.error("usage: node fetch.mjs <prod|staging>"); process.exit(2); }
-const baseUrl = process.env[env.url]?.replace(/\/$/, "");
+if (!env) { console.error("usage: node fetch.mjs <prod|local>"); process.exit(2); }
+const baseUrl = (process.env[env.url] || env.defaultUrl)?.replace(/\/$/, "");
+const rpc = process.env[env.rpc] || DEFAULT_RPC;
 const anonKey = process.env[env.key];
 if (!baseUrl || !anonKey) { console.error(`${env.url} / ${env.key} を設定してください`); process.exit(2); }
 
@@ -30,7 +32,7 @@ async function call(c) {
   let last;
   for (let i = 0; i < RETRIES; i++) {
     try {
-      const res = await fetch(`${baseUrl}/rest/v1/rpc/${env.rpc}`, {
+      const res = await fetch(`${baseUrl}/rest/v1/rpc/${rpc}`, {
         method: "POST",
         headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}`, "Content-Type": "application/json" },
         body,
