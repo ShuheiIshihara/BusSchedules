@@ -49,7 +49,7 @@ psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -f <更新SQL>
 - 区間CSVでの生データ比較: `scripts/compare_dbs.py`(B=ローカル)
 - 重複チェック: `scripts/check_dedup.py`
 
-アプリで確認する場合は、iOS の `Config-Local.xcconfig` / Web の `.env.local` の接続先をローカルに向ける。
+アプリで確認する場合、iOS は Debug ビルドでローカルに接続する(`Config-Debug.xcconfig` にローカルの値を設定)。Web は `.env.local` の接続先をローカルに向ける。
 シミュレータからは `127.0.0.1` で届く。
 
 ## 4. 本番へ反映する

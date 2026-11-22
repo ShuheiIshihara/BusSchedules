@@ -69,12 +69,15 @@ cd BusSchedules
 
 ### 2. Supabase設定
 
+接続先はビルド構成ごとに切り替わります（Debug → ローカルSupabase、Release → 本番Supabase）。
+
 ```bash
 cd 20_Source/BusNow
-cp Config-Local.xcconfig.template Config-Local.xcconfig
+cp Config-Debug.xcconfig.template Config-Debug.xcconfig
+cp Config-Release.xcconfig.template Config-Release.xcconfig
 ```
 
-`Config-Local.xcconfig` を編集してSupabaseの設定を追加：
+各ファイルを編集してSupabaseの設定を追加（詳細は [20_Source/BusNow/README.md](20_Source/BusNow/README.md)）：
 
 ```
 SUPABASE_DOMAIN = your-project-ref.supabase.co
@@ -152,7 +155,7 @@ xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 
 ## 🔒 セキュリティとプライバシー
 
 - **設定ファイル分離**: 機密情報は `.xcconfig` で管理
-- **Git除外**: `Config-Local.xcconfig` は `.gitignore` で除外
+- **Git除外**: `Config-Debug.xcconfig` / `Config-Release.xcconfig` は `.gitignore` で除外
 - **匿名アクセス**: ユーザー登録不要、個人情報収集なし
 - **プライバシー保護**: 位置情報やデバイス識別情報は一切収集しません
 - **詳細**: [プライバシーポリシー](PRIVACY_POLICY.md)をご確認ください

@@ -2,18 +2,23 @@
 
 ## 1. 設定ファイルの準備（重要：セキュリティ対応）
 
-### 手順1: ローカル設定ファイルの作成
-1. `Config-Local.xcconfig.template` を `Config-Local.xcconfig` にコピー
-2. `Config-Local.xcconfig` を開き、実際のSupabase値を設定：
+### 手順1: ビルド構成ごとの設定ファイルの作成
+接続先はビルド構成ごとに切り替わります（Debug → ローカルSupabase、Release → 本番Supabase）。
+
+1. `20_Source/BusNow/` で各テンプレートをコピー
+   - `Config-Debug.xcconfig.template` → `Config-Debug.xcconfig`
+   - `Config-Release.xcconfig.template` → `Config-Release.xcconfig`
+2. 各ファイルを開き、実際のSupabase値を設定：
 ```
 SUPABASE_DOMAIN = your-actual-project-ref.supabase.co
 SUPABASE_ANON_KEY = your-actual-anon-public-key-here
 ```
 
 **重要**: 
-- `Config-Local.xcconfig` は自動的に .gitignore に追加されており、Gitにコミットされません
-- **SUPABASE_DOMAINにはドメイン名のみを記録**します（`https://`は不要）
-- URLの`https://`部分はアプリ内で自動付与されます
+- `Config-Debug.xcconfig` / `Config-Release.xcconfig` は .gitignore で除外されており、Gitにコミットされません
+- **SUPABASE_DOMAINにはドメイン名（`host[:port]`）のみを記録**します（スキームは不要）
+- スキームはアプリ内で自動付与されます（`127.0.0.1` / `localhost` / プライベートIP / `.local` は `http://`、それ以外は `https://`）
+- Releaseビルドでローカル向けのドメインが設定されていると接続しません
 
 ### URL構成の仕組み
 ```
@@ -24,12 +29,12 @@ SUPABASE_ANON_KEY = your-actual-anon-public-key-here
 最終URL: "https://your-project.supabase.co"
 ```
 
-### 手順2: Xcode Build Configuration の設定
-1. Xcodeでプロジェクト (BusNow.xcodeproj) を開く
-2. Project Navigator でプロジェクトルートを選択
-3. "Info" タブを選択
-4. "Configurations" セクションで、Debug と Release の両方に対して：
-   - "Based on Configuration File" で `Config-Local.xcconfig` を選択
+### 手順2: Xcode Build Configuration の確認
+プロジェクトには設定済みです。"Info" タブの "Configurations" で、次のように割り当てられていることを確認します：
+- Debug → `Config-Debug.xcconfig`
+- Release → `Config-Release.xcconfig`
+
+値は `Info-Supabase.plist` 経由で Info.plist に埋め込まれます。
 
 ### 手順3: Build Settings でのUser-Defined変数確認
 1. Build Settings タブを開く
@@ -145,11 +150,11 @@ Supabase接続状態: true
 
 ## 5. 重要なセキュリティ注意事項
 
-- ✅ `Config-Local.xcconfig` は .gitignore に追加済み
+- ✅ `Config-Debug.xcconfig` / `Config-Release.xcconfig` は .gitignore に追加済み
 - ✅ 実際のAPIキーはGitにコミットされません
 - ✅ ドメイン名のみ設定ファイルに記録、URLスキームはコード内で管理
 - ✅ Bundle.main.infoDictionaryから実行時に値を取得
-- ⚠️ `Config-Local.xcconfig` をチーム間で共有する際は安全な方法を使用
+- ⚠️ xcconfig をチーム間で共有する際は安全な方法を使用
 - ⚠️ 本番環境では追加のセキュリティ対策を検討してください
 
 ## 6. トラブルシューティング
@@ -162,13 +167,13 @@ Supabase接続状態: true
 1. Xcode でプロジェクト設定の Configurations を確認
 2. Build Settings の User-Defined セクションで変数が表示されるか確認
 3. Clean Build Folder (Cmd+Shift+K) を実行
-4. `Config-Local.xcconfig` の内容を確認
+4. ビルド構成に対応する `Config-Debug.xcconfig` / `Config-Release.xcconfig` の内容を確認
 5. アプリ内で `SupabaseConfig.printDebugInfo()` を実行
 
 ### よくある問題と解決方法
 - **空の値が返される**: xconfigファイルがBuild Configurationに正しく設定されていない
-- **プレースホルダー値**: `Config-Local.xcconfig` に実際の値が設定されていない
-- **ドメイン形式エラー**: SUPABASE_DOMAINが`.supabase.co`で終わっていない
+- **プレースホルダー値**: ビルド構成に対応する xcconfig に実際の値が設定されていない
+- **ドメイン形式エラー**: SUPABASE_DOMAINにスキームやパスが含まれている（`host[:port]` のみ）
 - **URL構築失敗**: ドメイン名に`https://`が含まれている（不要）
 
 ## 7. この方式のメリット
