@@ -108,3 +108,7 @@ reports/compare/raw_*.csv
 !.env.example
 __pycache__/
 *.pyc
+
+# 検索履歴の個別ダンプ・作業用クエリ(コミットしない)
+/バス予定.csv
+supabase/snippets/Untitled query*.sql
