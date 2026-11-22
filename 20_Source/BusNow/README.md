@@ -80,7 +80,7 @@ BusNow/
 
 ## 📋 開発要件
 
-- iOS 18.0+
+- iOS 18.6+
 - Xcode 16.4+
 - Swift 5.10+
 - Supabase Swift SDK 2.0.0+
