@@ -113,6 +113,13 @@ extension String {
         return StringNormalization.normalizeForSearch(self)
     }
     
+    /// 読みがな比較用：半角カナ→全角(NFKC)、カタカナ→ひらがな、前後の空白除去
+    func normalizedKana() -> String {
+        let nfkc = self.precomposedStringWithCompatibilityMapping
+        let hiragana = nfkc.applyingTransform(.hiraganaToKatakana, reverse: true) ?? nfkc
+        return hiragana.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     func normalizedForDisplay() -> String {
         return StringNormalization.normalizeForDisplay(self)
     }
