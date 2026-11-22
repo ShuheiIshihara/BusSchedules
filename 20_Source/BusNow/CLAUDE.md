@@ -32,7 +32,7 @@ xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 
 xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:BusNowTests/StringNormalizationTests
 ```
 
-- ビルド: Swift を変更するたびに実行する
+- ビルド: Swift の変更があると、ターン終了時に Stop hook(`.claude/hooks/build-on-stop.sh`)が自動でビルドし、失敗したらエラーを返す。途中で確かめたいときは手動で実行する
 - 単体テスト(単一): テスト一式より、テストクラス単位の実行を優先する
 - `xcodebuild test` は、テストが終わったあとも10分以上プロセスが終了しないことがある。ログに出力をリダイレクトしてバックグラウンドで実行し、プロセスの終了を待たずに `Test Suite 'Selected tests' passed|failed` の行を結果とみなす。
 

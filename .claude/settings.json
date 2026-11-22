@@ -44,6 +44,18 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/build-on-stop.sh",
+            "timeout": 900,
+            "statusMessage": "Swift の変更を iOS ビルドで確認中"
+          }
+        ]
+      }
     ]
   }
 }
