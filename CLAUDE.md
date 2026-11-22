@@ -1,138 +1,82 @@
-# CLAUDE.md
+# BusNow(ばすみる)
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 概要
+名古屋市営バスの非公式時刻表サービス。Supabase に格納した GTFS-JP データを、2つのクライアントが共通のバックエンドとして使う。
 
-## Project Overview
-
-**BusNow** (display name: **ばすみる**) is an unofficial bus timetable service for Nagoya City Bus, built on GTFS-JP data stored in Supabase. It has two clients that share the same backend:
-
-| Client | Location | Status |
+| クライアント | 場所 | 状況 |
 |---|---|---|
-| iOS app (SwiftUI) | `20_Source/BusNow/` | Released on the App Store |
-| Web app (Vite + React + TypeScript SPA) | `20_Source/Web/` | **On hold** (since 2026-11-15). Early scaffold; planned for Cloudflare Pages |
+| iOS アプリ(SwiftUI) | `20_Source/BusNow/` | App Store で公開中 |
+| Web アプリ(Vite + React + TypeScript SPA) | `20_Source/Web/` | **保留中**(2026-11-15〜)。雛形のみ |
 
-The web app is a parallel channel, not a replacement for the iOS app. Feature parity with iOS is the goal; shareable URLs (station pair in the query string) and PWA support are web-specific additions.
+**現在の優先事項**(`10_Document/03_タスク/次期実装タスク一覧.md`): iOS 開発を継続する。時刻表データの更新も継続し、必ずローカルDBで先に検証する。Web アプリは保留中なので、依頼がない限り触らない。
 
-**Current priorities** (see `10_Document/03_タスク/次期実装タスク一覧.md`): iOS development continues; timetable data updates continue and are verified on the local DB first; the web app is on hold. Do not work on the web app unless asked.
+領域ごとの規約はコードの近くに置いてあり、その配下で作業すると読み込まれる: `20_Source/BusNow/CLAUDE.md`(iOS)、`20_Source/Web/CLAUDE.md`(Web)、`supabase/CLAUDE.md`(DB検証)。
 
-## Repository Layout
+## 技術スタック
+- iOS: Swift / SwiftUI(MVVM + Service層)
+- Web: Vite、React 19、TypeScript(保留中)
+- バックエンド: Supabase(PostgreSQL、GTFS-JP)。匿名・読み取り専用、RLS あり。メインの RPC は `get_phase1_bus_schedule_3`
+- 開発用スクリプト: Python(`scripts/`)、Node(`tools/db-compare/`)
+
+## 検証コマンド
+各領域の CLAUDE.md を参照する(iOS のビルド・テストは `20_Source/BusNow/CLAUDE.md`)。
+
+## リポジトリ構成
 
 ```
 .
-├── 10_Document/          # Specs and design docs (Japanese) — see "Design Documents"
+├── 10_Document/          # 仕様書・設計書(日本語)。「設計資料」を参照
 ├── 20_Source/
-│   ├── BusNow/           # iOS app (Xcode project)
-│   └── Web/              # Web app (npm project)
-├── supabase/             # Supabase CLI project for local DB verification (see its README)
-├── scripts/              # Python dev scripts (data generation, DB checks)
-├── tools/db-compare/     # Node scripts comparing prod vs local RPC results
-├── docs/                 # Test specs (e.g. supabase_test_spec.md)
-├── reports/              # Generated check reports
-└── .github/workflows/    # claude.yml (@claude action)
+│   ├── BusNow/           # iOS アプリ(Xcode プロジェクト)
+│   └── Web/              # Web アプリ(npm プロジェクト、保留中)
+├── supabase/             # ローカルDB検証用の Supabase CLI プロジェクト
+├── scripts/              # Python の開発用スクリプト(データ生成、DBチェック)
+├── tools/db-compare/     # 本番とローカルの RPC 結果を比較する Node スクリプト
+├── docs/                 # テスト仕様(例: supabase_test_spec.md)
+├── reports/              # 生成されたチェックレポート
+└── .claude/              # 共有ハーネス: settings.json(権限・hooks)、hooks/、skills/
 ```
 
-## iOS App (`20_Source/BusNow/`)
+## プロジェクト固有の規約
+- **本番DBには絶対に書き込まない。** ホストされたDBは本番の1つだけで、ステージングはない。DBの変更はローカル環境で先に検証する(`supabase/CLAUDE.md`)。
+- **秘密情報ファイルを読まない・コミットしない**: ルートの env ファイル、`20_Source/Web/.env.local`、`Config-Debug.xcconfig`、`Config-Release.xcconfig`。`.claude/settings.json` と `.claude/hooks/guard-bash.sh` で強制しているため、これらのファイル名がコマンドに含まれるだけで止まる(コミットメッセージも同様)。その場合は `git commit -F <ファイル>` を使う。
+- UI文言・エラーメッセージ: 日本語
+- DBスキーマの命名: 英語
+- 技術ドキュメント: 英語
+- 実装より古いドキュメントがある。コードとドキュメントが食い違うときはコードを正とし、食い違いを指摘する。
 
-- **Pattern**: MVVM + Service layer, SwiftUI
-- **Models**: `StationPair`, `Stop`
-- **ViewModels**: `StationSelectionViewModel`, `BusScheduleViewModel`
-- **Services**:
-  - `SupabaseService` — calls RPCs and deduplicates trips (`deduplicatedSchedules`)
-  - `SupabaseConfig` — reads `SUPABASE_DOMAIN` / `SUPABASE_ANON_KEY` from Info.plist (injected from the per-configuration xcconfig via `Info-Supabase.plist`)
-  - `StopNameRepository` — stop-name autocomplete backed by `Resources/stops.json`
-  - `AppUpdateService` — App Store update check
-- **Views**: `StationSelectionView`, `Schedule/BusScheduleView`, `Common/` (WebView, settings, legal pages, `StopSuggestionList`), `Debug/`
-- Stop-name suggestions: `StopNameRepository` and `StopSuggestionList` exist but are not yet wired into `StationSelectionView`. Spec: `10_Document/02_基本設計/25_駅選択画面設計書.md` §3.2.3.
-- **Utils**: `StringNormalization` (`normalizedForSearch()` — Japanese text normalization; mirrored in the web app)
-- **Localization**: `ja.lproj`, `en.lproj`
-- **Config**: Debug builds use the local Supabase, Release builds use production. Copy `Config-Debug.xcconfig.template` → `Config-Debug.xcconfig` and `Config-Release.xcconfig.template` → `Config-Release.xcconfig` (both git-ignored). Release refuses local domains. Never commit real keys.
+## スクリプトとツール
 
-### Commands
-
-```bash
-cd 20_Source/BusNow && xcodebuild -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16' build
-cd 20_Source/BusNow && xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16'
-cd 20_Source/BusNow && xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:BusNowTests/StringNormalizationTests
-```
-
-### Tests
-
-- `BusNowTests/`: `BusNowTests`, `StringNormalizationTests`, `StopNameRepositoryTests`
-- `BusNowUITests/`: launch and navigation flows
-- There are **no mock objects yet** (no `Mocks/` directory). `SupabaseService` is used directly, so ViewModel logic that depends on it cannot currently be unit-tested in isolation. When adding mocks, put them in `BusNowTests/Mocks/` behind a protocol extracted from `SupabaseService`.
-
-## Web App (`20_Source/Web/`)
-
-- **Stack**: Vite, React 19, TypeScript, react-router-dom, `@supabase/supabase-js`, Vitest, ESLint
-- **Env**: copy `.env.example` to `.env.local` and set `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`. The anon key is public by design (RLS); never use the service role key.
-- **Shared logic**: `src/utils/stringNormalization.ts` must stay behaviorally identical to the Swift `StringNormalization`. Change both together and update tests on both sides.
-- **Static data**: `public/data/stops.json` (generated, see `scripts/generate_stops_json.py`)
-- Status: **on hold**, scaffold only (`App.tsx` + normalization util). The plan and task list are in `10_Document/06_Web版/`.
-- While the web app is on hold, changes to the Swift `StringNormalization` do not need to be mirrored in `stringNormalization.ts`. Re-align both sides when web work resumes.
-
-### Commands (run inside `20_Source/Web/`)
-
-```bash
-npm run typecheck
-npm run lint
-npm test
-npm run build
-```
-
-Run `typecheck`, `lint` and `test` after every web change. Do not start `npm run dev` (long-lived).
-
-## Backend: Supabase (GTFS-JP)
-
-- Anonymous access with Row Level Security; public read-only data.
-- There is a single hosted database (production). There is **no staging database**.
-- Main RPC: `get_phase1_bus_schedule_3(departure_station, arrival_station, target_date)`, used by the iOS app (and the web app, per plan).
-- DB changes (schema or timetable data) are verified first on a local Supabase stack (`supabase/`, Supabase CLI + Docker). Workflow: pull prod schema/data → apply the change locally → compare prod (before) vs local (after) with `tools/db-compare` / `scripts/compare_dbs.py`. See `supabase/README.md`.
-- `supabase/migrations/` is tracked in git; `supabase/seed/` holds the prod data dump and is git-ignored.
-
-- Other RPC/REST: `phase1_health_check`, `security_phase_info` (fallback health check).
-- `target_date` is `yyyy-MM-dd`. Weekday/holiday is resolved by the DB via `serviceId` (`平日`, `日祝`, `平日メーグル`, `日祝メーグル`). The GTFS-JP 20260518 data (loaded locally, not yet in production) renames `日祝` to `日休`.
-- Station names must be passed through `normalizedForSearch()` before calling the RPC.
-- Schema / RLS reference: `10_Document/02_基本設計/Phase1_GTFS正確仕様版_基本セキュリティ設計.sql`
-- Never write to the production database. Never commit `.env`, `.env.local`, `Config-Debug.xcconfig`, or `Config-Release.xcconfig`.
-
-## Scripts and Tools
-
-| Path | Purpose |
+| パス | 用途 |
 |---|---|
-| `scripts/generate_stops_json.py` | Builds `stops.json` for both iOS (`BusNow/Resources/`) and Web (`public/data/`) from `10_Document/05_多言語/translations.txt`. Run from repo root. |
-| `scripts/check_dedup.py` | Checks RPC-result CSVs for duplicate trips using the same rules as `SupabaseService.deduplicatedSchedules`. Output: `reports/dedup_report.md` |
-| `scripts/compare_dbs.py` | Calls prod (A) and local (B) RPCs with the same inputs and compares raw pre-dedup results. Reads `SUPABASE_A_*` / `SUPABASE_B_*` from root `.env` (see `.env.example`). |
-| `tools/db-compare/` | Node version of the prod/local comparison (`fetch.mjs`, `diff.mjs`, `cases.json`). See its README. |
+| `scripts/generate_stops_json.py` | `10_Document/05_多言語/translations.txt` から iOS(`BusNow/Resources/`)と Web(`public/data/`)両方の `stops.json` を生成する。リポジトリのルートで実行する。 |
+| `scripts/check_dedup.py` | `SupabaseService.deduplicatedSchedules` と同じルールで、RPC 結果の CSV に重複便がないかを調べる。出力: `reports/dedup_report.md` |
+| `scripts/compare_dbs.py` | 本番(A)とローカル(B)の RPC を同じ入力で呼び、重複除外前の生データを比較する。 |
+| `tools/db-compare/` | 本番とローカルの比較の Node 版(`fetch.mjs`、`diff.mjs`、`cases.json`)。README を参照。 |
 
-If the dedup rules in `SupabaseService` change, update `scripts/check_dedup.py` to match.
+## 設計資料(`10_Document/`、日本語)
+機能を実装したり挙動を変えたりする前に、該当する資料を読む。
 
-## Design Documents (`10_Document/`, Japanese)
-
-Read the relevant document before implementing a feature or changing behavior.
-
-| Topic | Document |
+| 内容 | 資料 |
 |---|---|
-| Project plan | `01_要検定義/10_プロジェクト計画書.md` |
-| Functional spec | `02_基本設計/20_仕様書.md` |
-| Directory structure | `02_基本設計/21_ディレクトリ構造.md` |
-| Architecture | `02_基本設計/22_アーキテクチャ設計書.md` |
-| Class design | `02_基本設計/23_クラス設計書.md` |
-| UI design spec | `02_基本設計/24_バス時刻表アプリ UIデザイン仕様書.md`, `02_基本設計/画面デザイン/` |
-| Station selection screen | `02_基本設計/25_駅選択画面設計書.md` |
-| GTFS data / Supabase implementation | `02_基本設計/Phase1_GTFS正確仕様版_実装ガイド.md`, `99_備忘録/SupabaseIntegrationGuide.md` |
-| Security migration | `02_基本設計/段階的セキュリティ移行ガイド.md`, `02_基本設計/将来Phase移行準備計画.md` |
-| Task lists | `03_タスク/次期実装タスク一覧.md`, `03_タスク/11_開発タスク.md` |
-| Release / TestFlight | `04_リリース準備/` |
-| Web version plan and tasks | `06_Web版/01_Web化方針・作戦.md`, `06_Web版/02_作業タスクリスト.md` |
-| Supabase test spec | `docs/supabase_test_spec.md` |
+| プロジェクト計画 | `01_要検定義/10_プロジェクト計画書.md` |
+| 機能仕様 | `02_基本設計/20_仕様書.md` |
+| ディレクトリ構造 | `02_基本設計/21_ディレクトリ構造.md` |
+| アーキテクチャ | `02_基本設計/22_アーキテクチャ設計書.md` |
+| クラス設計 | `02_基本設計/23_クラス設計書.md` |
+| UIデザイン仕様 | `02_基本設計/24_バス時刻表アプリ UIデザイン仕様書.md`、`02_基本設計/画面デザイン/` |
+| 駅選択画面 | `02_基本設計/25_駅選択画面設計書.md` |
+| GTFSデータ / Supabase の実装 | `02_基本設計/Phase1_GTFS正確仕様版_実装ガイド.md`、`99_備忘録/SupabaseIntegrationGuide.md` |
+| セキュリティ移行 | `02_基本設計/段階的セキュリティ移行ガイド.md`、`02_基本設計/将来Phase移行準備計画.md` |
+| タスク一覧 | `03_タスク/次期実装タスク一覧.md`、`03_タスク/11_開発タスク.md` |
+| リリース / TestFlight | `04_リリース準備/` |
+| Web版の方針・タスク | `06_Web版/01_Web化方針・作戦.md`、`06_Web版/02_作業タスクリスト.md` |
+| Supabase のテスト仕様 | `docs/supabase_test_spec.md` |
 
-Some documents predate the current implementation. If code and a document disagree, trust the code and point out the discrepancy.
-
-## Key Features
-
-- Departure/arrival stop selection with autocomplete (kanji and hiragana reading)
-- Timetable list: departure time, route name, destination, platform; past departures grayed out
-- Real-time clock (HH:MM:SS)
-- Automatic weekday/holiday timetable selection
-- Outbound (行き) / inbound (帰り) direction toggle
-- In-app browser for bus approach (proximity) information
+## 主な機能
+- 出発・到着バス停の選択と候補表示(漢字・ひらがな読み)
+- 時刻表一覧: 発車時刻、路線名、行き先、のりば。発車済みの便はグレー表示
+- リアルタイム時計(HH:MM:SS)
+- 平日・休日ダイヤの自動選択
+- 行き・帰りの切り替え
+- バス接近情報のアプリ内ブラウザ表示
