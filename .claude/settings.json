@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(xcodebuild *)",
+      "Bash(xcrun simctl *)",
+      "Bash(npm run *)",
+      "Bash(python3 scripts/*)",
+      "Bash(node fetch.mjs *)",
+      "Bash(node diff.mjs*)",
+      "Bash(supabase start*)",
+      "Bash(supabase stop*)",
+      "Bash(supabase status*)"
+    ],
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.local)",
+      "Read(**/Config-Debug.xcconfig)",
+      "Read(**/Config-Release.xcconfig)",
+      "Edit(**/.env)",
+      "Edit(**/.env.local)",
+      "Edit(**/Config-Debug.xcconfig)",
+      "Edit(**/Config-Release.xcconfig)",
+      "Bash(supabase db push*)",
+      "Bash(supabase db reset --linked*)",
+      "Bash(supabase db reset --db-url*)",
+      "Bash(supabase migration repair*)",
+      "Bash(git commit --no-verify*)",
+      "Bash(git commit -n *)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)"
+    ]
+  }
+}
