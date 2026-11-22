@@ -31,6 +31,7 @@ struct BusNowApp: App {
                 }
             }
             // 画面表示と同時にバックグラウンドでバージョンチェックを開始
+            .task { await AppLogger.shared.logLaunch() }
             .task { await checkForUpdate() }
             // updateInfo がセットされると自動でアラートを表示（任意更新）
             .alert(
