@@ -120,7 +120,7 @@ final class BusNowUITests: XCTestCase {
     @MainActor
     func testSettingsAccess() throws {
         // 時刻表画面から設定画面にアクセス
-        testNavigationToScheduleView() // 時刻表画面に移動
+        try testNavigationToScheduleView() // 時刻表画面に移動
         
         let settingsButton = app.buttons["gearshape"]
         settingsButton.tap()
@@ -150,7 +150,7 @@ final class BusNowUITests: XCTestCase {
     @MainActor 
     func testDirectionSwitch() throws {
         // 時刻表画面で行き・帰りの切り替えをテスト
-        testNavigationToScheduleView() // 時刻表画面に移動
+        try testNavigationToScheduleView() // 時刻表画面に移動
         
         // 帰りボタンの存在確認と tap
         let inboundButton = app.buttons["帰り"]
@@ -174,7 +174,7 @@ final class BusNowUITests: XCTestCase {
     @MainActor
     func testServiceTypeSwitch() throws {
         // 時刻表画面で平日・土日祝の切り替えをテスト  
-        testNavigationToScheduleView() // 時刻表画面に移動
+        try testNavigationToScheduleView() // 時刻表画面に移動
         
         // 土日祝ボタンの存在確認と tap
         let holidayButton = app.buttons["土日祝"]

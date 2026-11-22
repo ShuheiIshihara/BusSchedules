@@ -52,7 +52,8 @@ final class StringNormalizationTests: XCTestCase {
     func testWhitespaceNormalization() {
         // 空白文字の正規化テスト
         let inputWithVariousWhitespace = " 　高辻　駅 \t\n"  // 全角・半角空白、タブ、改行
-        let expectedOutput = "高辻 駅"  // 前後削除、全角→半角、連続空白削除
+        // 前後削除、全角→半角、連続空白削除。検索用は「辻」に異体字セレクタ(U+E0100)が付く(DBの表記に合わせる)
+        let expectedOutput = "高辻\u{E0100} 駅"
         
         let normalized = StringNormalization.normalizeForSearch(inputWithVariousWhitespace)
         XCTAssertEqual(normalized, expectedOutput, "空白文字が正しく正規化されるべき")
@@ -76,7 +77,8 @@ final class StringNormalizationTests: XCTestCase {
         // String拡張機能のテスト
         let testString = "高辻駅"
         let normalized = testString.normalizedForSearch()
-        XCTAssertEqual(normalized, testString, "String拡張による正規化が機能すべき")
+        // 検索用は「辻」に異体字セレクタ(U+E0100)が付く(DBの表記に合わせる)
+        XCTAssertEqual(normalized, "高辻\u{E0100}駅", "String拡張による正規化が機能すべき")
         
         // フォント表示問題解決のため、異体字検出機能は簡素化
         XCTAssertFalse(testString.containsVariantCharacters(), "標準的な文字列は異体字を含まないべき")

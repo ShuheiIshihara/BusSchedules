@@ -8,6 +8,7 @@
 import XCTest
 @testable import BusNow
 
+@MainActor
 final class BusNowTests: XCTestCase {
     
     var viewModel: StationSelectionViewModel!
@@ -156,6 +157,7 @@ final class BusNowTests: XCTestCase {
     func testBusScheduleDataFromRPCResponse() throws {
         let rpcResponse = BusScheduleRPCResponse(
             departureTime: "08:30:00",
+            arrivalTime: "08:45:00",
             routeName: "名駅12",
             destination: "ささしまライブ",
             platform: "7番のりば",
@@ -169,6 +171,7 @@ final class BusNowTests: XCTestCase {
         
         // 秒が削除されていることを確認
         XCTAssertEqual(scheduleData.departureTime, "08:30")
+        XCTAssertEqual(scheduleData.arrivalTime, "08:45")
         XCTAssertEqual(scheduleData.routeName, "名駅12")
         XCTAssertEqual(scheduleData.destination, "ささしまライブ")
         XCTAssertEqual(scheduleData.platform, "7番のりば")
