@@ -86,7 +86,7 @@ Run `typecheck`, `lint` and `test` after every web change. Do not start `npm run
 - `supabase/migrations/` is tracked in git; `supabase/seed/` holds the prod data dump and is git-ignored.
 
 - Other RPC/REST: `phase1_health_check`, `security_phase_info` (fallback health check).
-- `target_date` is `yyyy-MM-dd`. Weekday/holiday is resolved by the DB via `serviceId` (`平日`, `日祝`, `平日メーグル`, `日祝メーグル`).
+- `target_date` is `yyyy-MM-dd`. Weekday/holiday is resolved by the DB via `serviceId` (`平日`, `日祝`, `平日メーグル`, `日祝メーグル`). The GTFS-JP 20260518 data (loaded locally, not yet in production) renames `日祝` to `日休`.
 - Station names must be passed through `normalizedForSearch()` before calling the RPC.
 - Schema / RLS reference: `10_Document/02_基本設計/Phase1_GTFS正確仕様版_基本セキュリティ設計.sql`
 - Never write to the production database. Never commit `.env`, `.env.local`, `Config-Debug.xcconfig`, or `Config-Release.xcconfig`.

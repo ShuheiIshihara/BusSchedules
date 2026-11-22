@@ -97,6 +97,9 @@ Config-Release.xcconfig
 .env.local
 20_Source/BusNow/BusNow.xcodeproj/.claude/settings.local.json
 
+# GTFS-JP source archives (large; download from the Nagoya City open data site)
+10_Document/07_DB情報/*.zip
+
 # db-compare output
 tools/db-compare/out/
 reports/compare/raw_*.csv
