@@ -9,9 +9,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Client | Location | Status |
 |---|---|---|
 | iOS app (SwiftUI) | `20_Source/BusNow/` | Released on the App Store |
-| Web app (Vite + React + TypeScript SPA) | `20_Source/Web/` | Early scaffold; planned for Cloudflare Pages |
+| Web app (Vite + React + TypeScript SPA) | `20_Source/Web/` | **On hold** (since 2026-11-15). Early scaffold; planned for Cloudflare Pages |
 
 The web app is a parallel channel, not a replacement for the iOS app. Feature parity with iOS is the goal; shareable URLs (station pair in the query string) and PWA support are web-specific additions.
+
+**Current priorities** (see `10_Document/03_タスク/次期実装タスク一覧.md`): iOS development continues; timetable data updates continue and are verified on the local DB first; the web app is on hold. Do not work on the web app unless asked.
 
 ## Repository Layout
 
@@ -40,6 +42,7 @@ The web app is a parallel channel, not a replacement for the iOS app. Feature pa
   - `StopNameRepository` — stop-name autocomplete backed by `Resources/stops.json`
   - `AppUpdateService` — App Store update check
 - **Views**: `StationSelectionView`, `Schedule/BusScheduleView`, `Common/` (WebView, settings, legal pages, `StopSuggestionList`), `Debug/`
+- Stop-name suggestions: `StopNameRepository` and `StopSuggestionList` exist but are not yet wired into `StationSelectionView`. Spec: `10_Document/02_基本設計/25_駅選択画面設計書.md` §3.2.3.
 - **Utils**: `StringNormalization` (`normalizedForSearch()` — Japanese text normalization; mirrored in the web app)
 - **Localization**: `ja.lproj`, `en.lproj`
 - **Config**: Debug builds use the local Supabase, Release builds use production. Copy `Config-Debug.xcconfig.template` → `Config-Debug.xcconfig` and `Config-Release.xcconfig.template` → `Config-Release.xcconfig` (both git-ignored). Release refuses local domains. Never commit real keys.
@@ -64,7 +67,8 @@ cd 20_Source/BusNow && xcodebuild test -scheme BusNow -destination 'platform=iOS
 - **Env**: copy `.env.example` to `.env.local` and set `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`. The anon key is public by design (RLS); never use the service role key.
 - **Shared logic**: `src/utils/stringNormalization.ts` must stay behaviorally identical to the Swift `StringNormalization`. Change both together and update tests on both sides.
 - **Static data**: `public/data/stops.json` (generated, see `scripts/generate_stops_json.py`)
-- Status: scaffold only (`App.tsx` + normalization util). The plan and task list are in `10_Document/06_Web版/`.
+- Status: **on hold**, scaffold only (`App.tsx` + normalization util). The plan and task list are in `10_Document/06_Web版/`.
+- While the web app is on hold, changes to the Swift `StringNormalization` do not need to be mirrored in `stringNormalization.ts`. Re-align both sides when web work resumes.
 
 ### Commands (run inside `20_Source/Web/`)
 
