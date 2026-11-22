@@ -60,4 +60,20 @@ if [[ "$cmd" =~ (^|[^A-Za-z0-9_-])(psql|pg_restore)([[:space:]]|$) ]]; then
   fi
 fi
 
+# 2c. 本番RPCの呼び出し: get_phase1_bus_schedule_3 は呼ぶたびに search_history へ INSERT するため、
+#     本番に向けて呼ぶと本番DBへの書き込みになる。接続先がローカルだとコマンド上で明示されていない限り止める。
+LOCAL_URL='http://(127\.0\.0\.1|localhost)(:[0-9]+)?'
+# tools/db-compare: `node fetch.mjs prod` は PROD_URL をローカルにした場合だけ許可
+if [[ "$cmd" =~ fetch\.mjs[[:space:]]+prod ]] && ! [[ "$cmd" =~ PROD_URL=[\"\']?${LOCAL_URL} ]]; then
+  block "node fetch.mjs prod calls the production RPC, which writes search_history. Set PROD_URL=http://127.0.0.1:54321 inline to use a local 'before' snapshot"
+fi
+# scripts/compare_dbs.py: A は既定で本番。A をローカルにした場合と --offline だけ許可
+if [[ "$cmd" =~ compare_dbs\.py ]] && ! [[ "$cmd" =~ --offline ]] && ! [[ "$cmd" =~ SUPABASE_A_URL=[\"\']?${LOCAL_URL} ]]; then
+  block "compare_dbs.py calls the production RPC (A) by default, which writes search_history. Set SUPABASE_A_URL=http://127.0.0.1:54321 inline or use --offline"
+fi
+# curl / wget などでホストされた Supabase の RPC を直接呼ぶ
+if [[ "$cmd" =~ supabase\.(co|com)[^[:space:]]*/rest/v1/rpc/ ]]; then
+  block "direct call to a hosted Supabase RPC endpoint (writes search_history in production)"
+fi
+
 exit 0
