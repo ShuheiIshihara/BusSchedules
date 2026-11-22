@@ -36,13 +36,13 @@ The web app is a parallel channel, not a replacement for the iOS app. Feature pa
 - **ViewModels**: `StationSelectionViewModel`, `BusScheduleViewModel`
 - **Services**:
   - `SupabaseService` — calls RPCs and deduplicates trips (`deduplicatedSchedules`)
-  - `SupabaseConfig` — reads `SUPABASE_DOMAIN` / `SUPABASE_ANON_KEY` from xcconfig
+  - `SupabaseConfig` — reads `SUPABASE_DOMAIN` / `SUPABASE_ANON_KEY` from Info.plist (injected from the per-configuration xcconfig via `Info-Supabase.plist`)
   - `StopNameRepository` — stop-name autocomplete backed by `Resources/stops.json`
   - `AppUpdateService` — App Store update check
 - **Views**: `StationSelectionView`, `Schedule/BusScheduleView`, `Common/` (WebView, settings, legal pages, `StopSuggestionList`), `Debug/`
 - **Utils**: `StringNormalization` (`normalizedForSearch()` — Japanese text normalization; mirrored in the web app)
 - **Localization**: `ja.lproj`, `en.lproj`
-- **Config**: copy `Config-Local.xcconfig.template` to `Config-Local.xcconfig` (git-ignored). Never commit real keys.
+- **Config**: Debug builds use the local Supabase, Release builds use production. Copy `Config-Debug.xcconfig.template` → `Config-Debug.xcconfig` and `Config-Release.xcconfig.template` → `Config-Release.xcconfig` (both git-ignored). Release refuses local domains. Never commit real keys.
 
 ### Commands
 
@@ -89,7 +89,7 @@ Run `typecheck`, `lint` and `test` after every web change. Do not start `npm run
 - `target_date` is `yyyy-MM-dd`. Weekday/holiday is resolved by the DB via `serviceId` (`平日`, `日祝`, `平日メーグル`, `日祝メーグル`).
 - Station names must be passed through `normalizedForSearch()` before calling the RPC.
 - Schema / RLS reference: `10_Document/02_基本設計/Phase1_GTFS正確仕様版_基本セキュリティ設計.sql`
-- Never write to the production database. Never commit `.env`, `.env.local`, or `Config-Local.xcconfig`.
+- Never write to the production database. Never commit `.env`, `.env.local`, `Config-Debug.xcconfig`, or `Config-Release.xcconfig`.
 
 ## Scripts and Tools
 

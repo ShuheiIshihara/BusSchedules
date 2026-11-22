@@ -1,0 +1,8 @@
+// Debug build: ローカルSupabase (DB更新の検証用)
+// このファイルを Config-Debug.xcconfig にコピーして値を設定してください (Gitにコミットされません)
+// 注意: ドメイン名(host[:port])のみを記録します。スキームはコード側で付与されます
+// (xcconfigでは // 以降がコメント扱いになるため URL は書けません)
+// シミュレータ: 127.0.0.1:54321 / 実機: MacのLAN IP (例: 192.168.0.11:54321)
+// anon key は `supabase status` で確認できます
+SUPABASE_DOMAIN = 127.0.0.1:54321
+SUPABASE_ANON_KEY = YOUR_LOCAL_SUPABASE_ANON_KEY

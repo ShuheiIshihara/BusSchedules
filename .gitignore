@@ -90,6 +90,8 @@ Temporary Items
 
 # Configuration files with sensitive data
 Config-Local.xcconfig
+Config-Debug.xcconfig
+Config-Release.xcconfig
 *.local.xcconfig
 *.env
 .env.local
