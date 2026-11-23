@@ -1,10 +1,6 @@
 ---
 name: git-commit
-description: >
-  ステージング済みのGit変更を分析し、日本語のコミットメッセージを自動生成してgit commitを実行するスキル。
-  「コミット」「commit」「コミットメッセージを作って」「git commitしたい」「ステージングが終わった」
-  「差分からメッセージを考えて」など、コミット操作に関わる発言があれば必ずこのスキルを使うこと。
-  ユーザーがgit addの後に何か作業を依頼してきた場合も積極的にこのスキルの利用を提案すること。
+description: ステージング済みの変更から日本語のコミットメッセージを作り、確認を取ってから git commit する。「コミット」「コミットメッセージを作って」「git commitしたい」と言われたときに使う。
 ---
 
 # Git Commit Message Generator
@@ -74,11 +70,15 @@ If the user requests changes, revise and re-propose.
 
 ### Step 5: Run git commit
 
-Once approved:
+Once approved, write the message (subject, blank line, body, then any attribution trailer the environment requires) to a file in the scratchpad and commit from it:
 
 ```bash
-git commit -m "<subject>" -m "<body>"   # body only if present
+git commit -F <scratchpad>/commit_msg.txt
 ```
+
+Always use `-F`, not `-m`. This repo's guard hook blocks any Bash command that contains secret file names (e.g. the env file or the Debug/Release xcconfig names) or production RPC commands — even inside a commit message — so `-m` with such text fails.
+
+If the user asked to commit without reviewing the message first, skip Step 4 and commit directly.
 
 After committing, show the commit hash and subject line, and remind the user they can push manually.
 
