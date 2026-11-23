@@ -50,7 +50,7 @@
 | パス | 用途 |
 |---|---|
 | `scripts/generate_stops_json.py` | `10_Document/05_多言語/translations.txt` から iOS(`BusNow/Resources/`)と Web(`public/data/`)両方の `stops.json` を生成する。リポジトリのルートで実行する。 |
-| `scripts/check_dedup.py` | `SupabaseService.deduplicatedSchedules` と同じルールで、RPC 結果の CSV に重複便がないかを調べる。出力: `reports/dedup_report.md` |
+| `scripts/check_dedup.py` | `SupabaseService.deduplicatedSchedules` と同じルールで、RPC 結果の CSV に重複便がないかを調べる。出力: `reports/dedup_report.md`。ルールが iOS と同じかは `scripts/test_dedup_rule.py` で検証する |
 | `scripts/compare_dbs.py` | 本番(A)とローカル(B)の RPC を同じ入力で呼び、重複除外前の生データを比較する。 |
 | `tools/db-compare/` | 本番とローカルの比較の Node 版(`fetch.mjs`、`diff.mjs`、`cases.json`)。README を参照。 |
 

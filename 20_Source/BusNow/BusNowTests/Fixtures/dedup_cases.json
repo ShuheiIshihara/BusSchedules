@@ -1,0 +1,85 @@
+{
+  "_comment": "Shared dedup rule fixtures. Used by BusNowTests/DedupRuleTests.swift (SupabaseService.deduplicatedSchedules) and scripts/test_dedup_rule.py (scripts/check_dedup.py). 'input' items are RPC-response shaped; 'expected' lists the 'platform' values of the kept trips, in order. Change the rule on both sides and update this file together.",
+  "cases": [
+    {
+      "name": "no duplicates keeps all in order",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:10:00", "arrivalTime": "08:30:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p1", "serviceType": "平日", "departureMinutes": 490, "serviceId": "平日"}
+      ],
+      "expected": ["p0", "p1"]
+    },
+    {
+      "name": "same key keeps the earliest arrival at the first position",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:40:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:05:00", "arrivalTime": "08:25:00", "routeName": "栄758", "destination": "栄", "platform": "p1", "serviceType": "平日", "departureMinutes": 485, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p2", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p2", "p1"]
+    },
+    {
+      "name": "same key keeps the first when it arrives earlier",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "arrivalTime": "08:40:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p1", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p0"]
+    },
+    {
+      "name": "different destination is not a duplicate",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "名駅12", "destination": "中川車庫", "platform": "p1", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p0", "p1"]
+    },
+    {
+      "name": "different route name is not a duplicate",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "名駅13", "destination": "ささしまライブ", "platform": "p1", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p0", "p1"]
+    },
+    {
+      "name": "missing arrival loses to a known arrival",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": null, "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "arrivalTime": "08:50:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p1", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p1"]
+    },
+    {
+      "name": "both arrivals missing keeps the first",
+      "input": [
+        {"departureTime": "08:00:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p1", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p0"]
+    },
+    {
+      "name": "equal arrival keeps the first",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p1", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p0"]
+    },
+    {
+      "name": "loop route with three passes keeps the earliest arrival",
+      "input": [
+        {"departureTime": "09:00:00", "arrivalTime": "09:45:00", "routeName": "名駅12", "destination": "名古屋駅", "platform": "p0", "serviceType": "平日", "departureMinutes": 540, "serviceId": "平日"},
+        {"departureTime": "09:00:00", "arrivalTime": "09:15:00", "routeName": "名駅12", "destination": "名古屋駅", "platform": "p1", "serviceType": "平日", "departureMinutes": 540, "serviceId": "平日"},
+        {"departureTime": "09:05:00", "arrivalTime": "09:30:00", "routeName": "栄758", "destination": "栄", "platform": "p2", "serviceType": "平日", "departureMinutes": 545, "serviceId": "平日"},
+        {"departureTime": "09:00:00", "arrivalTime": "09:30:00", "routeName": "名駅12", "destination": "名古屋駅", "platform": "p3", "serviceType": "平日", "departureMinutes": 540, "serviceId": "平日"}
+      ],
+      "expected": ["p1", "p2"]
+    },
+    {
+      "name": "empty input",
+      "input": [],
+      "expected": []
+    }
+  ]
+}

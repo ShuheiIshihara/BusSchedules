@@ -61,4 +61,5 @@ def main():
     print("\n".join(lines[:6]))
 
 
-main()
+if __name__ == "__main__":
+    main()
