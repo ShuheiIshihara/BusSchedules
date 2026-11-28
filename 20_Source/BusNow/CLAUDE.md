@@ -35,6 +35,7 @@ xcodebuild test -scheme BusNow -destination 'platform=iOS Simulator,name=iPhone 
 - **Claude は `xcodebuild` を自分で実行しない。**
 - ビルド: Swift の変更があると、ターン終了時に Stop hook(`.claude/hooks/build-on-stop.sh`)が自動でビルドし、失敗したらエラーを返す。手動ではビルドしない
 - テスト: 実行せず、コピー可能なコマンドを開発者に提示する。テスト一式より、変更に関係するテストクラス単位のコマンドを優先する
+- レビュー: Swift を変更したら、コミット前にサブエージェント `ios-reviewer`(読み取り専用)に差分をレビューさせ、指摘を開発者に伝える
 - `xcodebuild test` は、テストが終わったあとも10分以上プロセスが終了しないことがある。`Test Suite 'Selected tests' passed|failed` の行が出たら結果とみなし、プロセスは止めてよいと開発者に伝える
 
 ## プロジェクト固有の規約

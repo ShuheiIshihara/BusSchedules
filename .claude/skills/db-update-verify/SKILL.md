@@ -71,7 +71,11 @@ python3 scripts/check_dedup.py <result.csv> [--sample N]
 
 Output: `reports/dedup_report.md`. Rules mirror `SupabaseService.deduplicatedSchedules`.
 
-### 7. Optional: check in the app
+### 7. Analyze the differences with the `db-diff-analyst` agent
+
+Delegate the reading of `out/report.md`, `out/diff.json` and `reports/dedup_report.md` to the `db-diff-analyst` subagent. Tell it what was changed (migration / SQL file / GTFS-JP release). It classifies each difference pattern as expected / needs-check / unexpected, so the raw diff stays out of this conversation. Use its conclusion in the report below.
+
+### 8. Optional: check in the app
 
 iOS Debug builds connect to the local stack (`127.0.0.1` from the simulator). Suggest the developer run the app against it.
 

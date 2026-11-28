@@ -34,7 +34,7 @@
 ├── tools/db-compare/     # 本番とローカルの RPC 結果を比較する Node スクリプト
 ├── docs/                 # テスト仕様(例: supabase_test_spec.md)
 ├── reports/              # 生成されたチェックレポート
-└── .claude/              # 共有ハーネス: settings.json(権限・hooks)、hooks/、skills/
+└── .claude/              # 共有ハーネス: settings.json(権限・hooks)、hooks/、skills/、agents/(ios-reviewer、db-diff-analyst)
 ```
 
 ## プロジェクト固有の規約
