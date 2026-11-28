@@ -3,22 +3,54 @@
 
 SupabaseService.deduplicatedSchedules と同じ規則:
 (departureTime, routeName, destination) が同じ便は arrivalTime が最も早いものを残す。
+比較の前に、iOS の BusScheduleData(from:) と同じ前処理をかける:
+時刻は秒を削って HH:MM、路線名・行き先は normalizedForDisplay と同じ正規化
+(NFC、前後の空白除去、全角スペース→半角、連続空白を1つに、しんにょう文字に異体字セレクタを付与)。
 
 使い方:
   python3 scripts/check_dedup.py <input.csv> [--sample N] [--seed S] [--out reports/dedup_report.md]
 --sample 省略時は全件。指定時は重複あり/なしを半々で層別抽出する。
 """
-import argparse, collections, csv, json, random, datetime
+import argparse, collections, csv, json, random, datetime, re, unicodedata
 
 csv.field_size_limit(10**9)
+
+# StringNormalization.shinnnyouMapping のキー(表示時に1点しんにょうを強制する文字)
+SHINNYOU_CHARS = ["辻", "込", "迫", "追"]
+VARIATION_SELECTOR = "\U000E0100"
+
+
+def time_without_seconds(value):
+    """BusScheduleData.formatTimeWithoutSeconds と同じ。"""
+    if value is None:
+        return None
+    parts = value.split(":")
+    return f"{parts[0]}:{parts[1]}" if len(parts) >= 2 else value
+
+
+def normalized_for_display(value):
+    """StringNormalization.normalizeForDisplay と同じ。"""
+    if not value:
+        return value
+    s = unicodedata.normalize("NFC", value)
+    for c in SHINNYOU_CHARS:
+        s = re.sub(f"{c}(?!{VARIATION_SELECTOR})", c + VARIATION_SELECTOR, s)
+    s = s.strip().replace("\u3000", " ")
+    return re.sub(r"\s+", " ", s)
 
 
 def dedup(trips):
     best = {}
+    arrival = {}
     for t in trips:
-        k = (t["departureTime"], t["routeName"], t["destination"])
-        if k not in best or (t.get("arrivalTime") or "99:99") < (best[k].get("arrivalTime") or "99:99"):
+        k = (time_without_seconds(t["departureTime"]),
+             normalized_for_display(t["routeName"]),
+             normalized_for_display(t["destination"]))
+        a = time_without_seconds(t.get("arrivalTime"))
+        a = "99:99" if a is None else a  # Swift の `?? "99:99"` と同じく None のときだけ
+        if k not in best or a < arrival[k]:
             best[k] = t
+            arrival[k] = a
     return list(best.values())
 
 

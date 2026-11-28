@@ -77,6 +77,46 @@
       "expected": ["p1", "p2"]
     },
     {
+      "name": "departure differing only in seconds is a duplicate",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:40:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:30", "arrivalTime": "08:20:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p1", "serviceType": "平日", "departureMinutes": 480.5, "serviceId": "平日"}
+      ],
+      "expected": ["p1"]
+    },
+    {
+      "name": "arrival differing only in seconds counts as equal and keeps the first",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:30", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:10", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p1", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p0"]
+    },
+    {
+      "name": "whitespace and full-width space variants are the same name",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:40:00", "routeName": "名駅12", "destination": "ささしま ライブ", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": " 名駅12 ", "destination": "ささしま\u3000\u3000ライブ", "platform": "p1", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p1"]
+    },
+    {
+      "name": "NFD and NFC forms are the same name",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:40:00", "routeName": "名駅12", "destination": "ささしまライ\u30d5\u3099", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "名駅12", "destination": "ささしまライブ", "platform": "p1", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p1"]
+    },
+    {
+      "name": "shinnyou with and without variation selector are the same name",
+      "input": [
+        {"departureTime": "08:00:00", "arrivalTime": "08:40:00", "routeName": "幹高辻1", "destination": "高辻", "platform": "p0", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"},
+        {"departureTime": "08:00:00", "arrivalTime": "08:20:00", "routeName": "幹高辻\udb40\udd001", "destination": "高辻\udb40\udd00", "platform": "p1", "serviceType": "平日", "departureMinutes": 480, "serviceId": "平日"}
+      ],
+      "expected": ["p1"]
+    },
+    {
       "name": "empty input",
       "input": [],
       "expected": []
